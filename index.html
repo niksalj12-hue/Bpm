@@ -156,6 +156,7 @@ body { display: flex; align-items: center; justify-content: center; position: re
   cursor: pointer; position: relative; overflow: hidden;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
   -webkit-tap-highlight-color: transparent; user-select: none;
+  touch-action: none;
   transition: border-color .1s, transform .08s; will-change: transform; flex-shrink: 0;
 }
 .tap-btn:active { transform: scale(0.95); border-color: var(--accent); }
@@ -305,7 +306,23 @@ body { display: flex; align-items: center; justify-content: center; position: re
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 199; opacity: 0; pointer-events: none; transition: opacity .32s; }
 .overlay.open { opacity: 1; pointer-events: all; }
 
-/* ── SAVE MODAL ── */
+/* ── SOUND PICKER MODAL ── */
+.sound-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:300; display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s; }
+.sound-modal-backdrop.open { opacity:1; pointer-events:all; }
+.sound-modal { background:var(--surface2); border:1px solid #333; border-radius:8px 8px 0 0; padding:20px 20px 32px; width:100%; max-width:420px; }
+.sound-modal-title { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:3px; color:var(--accent); margin-bottom:14px; }
+.sound-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+.sound-option {
+  background:none; border:1px solid var(--muted); color:var(--muted);
+  font-family:'DM Mono',monospace; font-size:10px; letter-spacing:1px;
+  padding:12px 6px; border-radius:4px; cursor:pointer; text-align:center;
+  transition:border-color .15s,color .15s,background .15s;
+  -webkit-tap-highlight-color:transparent; line-height:1.4;
+}
+.sound-option .sound-icon { font-size:20px; display:block; margin-bottom:4px; }
+.sound-option:active { background:rgba(232,255,71,0.07); }
+.sound-option.selected { border-color:var(--accent); color:var(--accent); }
+
 .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 300; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
 .modal-backdrop.open { opacity: 1; pointer-events: all; }
 .modal { background: var(--surface2); border: 1px solid #333; border-radius: 4px; padding: 24px; width: 88%; max-width: 320px; display: flex; flex-direction: column; gap: 14px; }
@@ -330,6 +347,14 @@ body { display: flex; align-items: center; justify-content: center; position: re
   </div>
   <div id="sidebarEmpty" class="sidebar-empty">Inga sparade låtar än.<br>Tap ett tempo och tryck 💾</div>
   <div class="song-list" id="songList"></div>
+</div>
+
+<!-- Sound picker modal -->
+<div class="sound-modal-backdrop" id="soundModalBackdrop">
+  <div class="sound-modal">
+    <div class="sound-modal-title">Välj ljud</div>
+    <div class="sound-grid" id="soundGrid"></div>
+  </div>
 </div>
 
 <!-- Save modal -->
@@ -390,6 +415,7 @@ body { display: flex; align-items: center; justify-content: center; position: re
       <button class="icon-btn" id="pauseBtn" disabled title="Pausa/Fortsätt">▶</button>
       <button class="icon-btn" id="saveBtn"  disabled title="Spara låt">💾</button>
       <button class="icon-btn" id="soundBtn" title="Ljud på/av">🔊</button>
+      <button class="icon-btn" id="soundPickBtn" title="Välj ljud" style="border-color:#a78bfa;color:#a78bfa;">🎵</button>
       <button class="list-btn" id="listBtn">☰</button>
     </div>
   </div>
@@ -433,9 +459,10 @@ window.addEventListener('resize', applyOrientation);
 applyOrientation();
 
 // ════════════════════════════════════════════
-//  AUDIO ENGINE
+//  AUDIO ENGINE — 6 sounds
 // ════════════════════════════════════════════
 let audioCtx = null, soundEnabled = true, keepAliveNode = null;
+let currentSound = localStorage.getItem('bpm_sound') || 'shaker1';
 
 function getCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -453,24 +480,95 @@ function startKeepAlive() {
   osc.start(); keepAliveNode = osc;
 }
 
-function playShaker(vol) {
-  if (!soundEnabled) return; vol = vol || 1;
-  const ctx = getCtx(), now = ctx.currentTime, sr = ctx.sampleRate;
-  function layer(dur, freq, q, type, attack, peak, hpFreq) {
-    const b = ctx.createBuffer(1, Math.floor(sr*dur), sr);
-    const d = b.getChannelData(0); for (let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
-    const s = ctx.createBufferSource(); s.buffer = b;
-    const f = ctx.createBiquadFilter(); f.type=type; f.frequency.value=freq; f.Q.value=q;
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0,now); g.gain.linearRampToValueAtTime(peak*vol,now+attack); g.gain.exponentialRampToValueAtTime(0.001,now+dur);
-    if (hpFreq) { const h=ctx.createBiquadFilter(); h.type='highpass'; h.frequency.value=hpFreq; s.connect(f);f.connect(h);h.connect(g); }
-    else { s.connect(f); f.connect(g); }
-    g.connect(ctx.destination); s.start(now); s.stop(now+dur+0.01);
-  }
-  layer(0.09,5800,1.1,'bandpass',0.007,0.34,3200);
-  layer(0.02,2000,2.5,'bandpass',0.002,0.14,0);
-  layer(0.15,9500,1,'highpass',0.012,0.10,0);
+function noise(ctx, dur) {
+  const b = ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
+  const d = b.getChannelData(0); for (let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  return b;
 }
+
+function noiseLayer(ctx, buf, freq, q, type, attack, peak, vol, hpFreq) {
+  const now = ctx.currentTime, dur = buf.duration;
+  const s = ctx.createBufferSource(); s.buffer = buf;
+  const f = ctx.createBiquadFilter(); f.type=type; f.frequency.value=freq; f.Q.value=q;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0,now); g.gain.linearRampToValueAtTime(peak*vol,now+attack); g.gain.exponentialRampToValueAtTime(0.001,now+dur);
+  if (hpFreq) { const h=ctx.createBiquadFilter(); h.type='highpass'; h.frequency.value=hpFreq; s.connect(f);f.connect(h);h.connect(g); }
+  else { s.connect(f); f.connect(g); }
+  g.connect(ctx.destination); s.start(now); s.stop(now+dur+0.01);
+}
+
+const sounds = {
+  // Shaker 1 — original, high sibilant
+  shaker1: { label: 'Shaker 1', fn(vol) {
+    const ctx=getCtx(), now=ctx.currentTime;
+    noiseLayer(ctx,noise(ctx,0.09),5800,1.1,'bandpass',0.007,0.34,vol,3200);
+    noiseLayer(ctx,noise(ctx,0.02),2000,2.5,'bandpass',0.002,0.14,vol,0);
+    noiseLayer(ctx,noise(ctx,0.15),9500,1,'highpass',0.012,0.10,vol,0);
+  }},
+  // Shaker 2 — warmer, mid-range maracas feel
+  shaker2: { label: 'Shaker 2', fn(vol) {
+    const ctx=getCtx(), now=ctx.currentTime;
+    noiseLayer(ctx,noise(ctx,0.12),3200,0.9,'bandpass',0.005,0.45,vol,1200);
+    noiseLayer(ctx,noise(ctx,0.08),6000,1.5,'bandpass',0.008,0.20,vol,0);
+    noiseLayer(ctx,noise(ctx,0.20),1800,2,'bandpass',0.015,0.08,vol,0);
+  }},
+  // Shaker 3 — softer, egg-shaker with longer tail
+  shaker3: { label: 'Shaker 3', fn(vol) {
+    const ctx=getCtx(), now=ctx.currentTime;
+    noiseLayer(ctx,noise(ctx,0.18),4200,0.7,'bandpass',0.010,0.28,vol,2000);
+    noiseLayer(ctx,noise(ctx,0.25),7500,1.2,'highpass',0.015,0.12,vol,0);
+    noiseLayer(ctx,noise(ctx,0.06),1500,3,'bandpass',0.003,0.10,vol,0);
+  }},
+  // Cowbell — FM synthesis classic
+  cowbell: { label: 'Cowbell', fn(vol) {
+    const ctx=getCtx(), now=ctx.currentTime;
+    [562, 845].forEach(freq => {
+      const osc=ctx.createOscillator(); osc.type='square'; osc.frequency.value=freq;
+      const g=ctx.createGain();
+      g.gain.setValueAtTime(vol*0.28,now);
+      g.gain.exponentialRampToValueAtTime(0.001,now+0.55);
+      const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=300;
+      osc.connect(hp); hp.connect(g); g.connect(ctx.destination);
+      osc.start(now); osc.stop(now+0.56);
+    });
+  }},
+  // Metronom tick — sharp sine ping
+  metro: { label: 'Metro tick', fn(vol) {
+    const ctx=getCtx(), now=ctx.currentTime;
+    const osc=ctx.createOscillator(); osc.type='sine'; osc.frequency.value=1800;
+    osc.frequency.setValueAtTime(1800,now);
+    osc.frequency.exponentialRampToValueAtTime(900,now+0.025);
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(vol*0.6,now);
+    g.gain.exponentialRampToValueAtTime(0.001,now+0.04);
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(now); osc.stop(now+0.05);
+    // subtle click transient
+    noiseLayer(ctx,noise(ctx,0.008),3000,5,'bandpass',0.001,0.3,vol,0);
+  }},
+  // Woodblock — resonant thump
+  woodblock: { label: 'Woodblock', fn(vol) {
+    const ctx=getCtx(), now=ctx.currentTime;
+    const osc=ctx.createOscillator(); osc.type='sine';
+    osc.frequency.setValueAtTime(1200,now);
+    osc.frequency.exponentialRampToValueAtTime(600,now+0.06);
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(vol*0.5,now);
+    g.gain.exponentialRampToValueAtTime(0.001,now+0.08);
+    const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=900; bp.Q.value=3;
+    osc.connect(bp); bp.connect(g); g.connect(ctx.destination);
+    osc.start(now); osc.stop(now+0.09);
+    noiseLayer(ctx,noise(ctx,0.012),1000,4,'bandpass',0.001,0.25,vol,0);
+  }}
+};
+
+function playSound(vol) {
+  if (!soundEnabled) return;
+  vol = vol || 1;
+  sounds[currentSound]?.fn(vol);
+}
+// keep old name for metronome calls
+function playShaker(vol) { playSound(vol); }
 
 // ════════════════════════════════════════════
 //  SONG LIST
@@ -502,7 +600,9 @@ const resetBtn        = document.getElementById('resetBtn');
 const pauseBtn        = document.getElementById('pauseBtn');
 const saveBtn         = document.getElementById('saveBtn');
 const soundBtn        = document.getElementById('soundBtn');
-const listBtn         = document.getElementById('listBtn');
+const soundPickBtn       = document.getElementById('soundPickBtn');
+const soundModalBackdrop = document.getElementById('soundModalBackdrop');
+const soundGrid          = document.getElementById('soundGrid');
 const flash           = document.getElementById('flash');
 const tapRipple       = document.getElementById('tapRipple');
 const pulseRing       = document.getElementById('pulseRing');
@@ -584,12 +684,11 @@ function stopMetronome() {
 //  TAP
 // ════════════════════════════════════════════
 function onTap(e) {
-  e.preventDefault();
   const now = performance.now();
   if (taps.length > 0 && now-taps[taps.length-1] > RESET_MS) taps = [];
   taps.push(now);
   triggerFlash(); triggerRipple(); triggerPulse(); lightDot();
-  playShaker(1.0);
+  playSound(1.0);
   const n = taps.length;
   syncBeatCount(n > 0 ? `${n}` : '');
   if (n < 2) { syncTapSub('fortsätt trycka…'); stopMetronome(); return; }
@@ -782,19 +881,56 @@ makeRepeat(arrowUp,1); makeRepeat(arrowDown,-1);
 //  BUTTON EVENTS
 // ════════════════════════════════════════════
 
-// Android fix: prevent double-firing from both touchstart and click
+// Use pointerdown — works reliably on both iOS and Android
+// without the double-fire problem of touchstart+click
 let lastTapTime = 0;
 function onTapGuarded(e) {
+  e.preventDefault();
   const now = Date.now();
-  if (now - lastTapTime < 100) return; // ignore if fired twice within 100ms
+  if (now - lastTapTime < 80) return;
   lastTapTime = now;
+  // Ensure audio context is resumed (required on Android)
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
   onTap(e);
 }
 
-tapBtn.addEventListener('touchstart',  onTapGuarded, {passive:false});
-tapBtn.addEventListener('click',       onTapGuarded);
-tapBtnL.addEventListener('touchstart', onTapGuarded, {passive:false});
-tapBtnL.addEventListener('click',      onTapGuarded);
+tapBtn.addEventListener('pointerdown',  onTapGuarded);
+tapBtnL.addEventListener('pointerdown', onTapGuarded);
+
+// ════════════════════════════════════════════
+//  SOUND PICKER
+// ════════════════════════════════════════════
+const soundMeta = {
+  shaker1:  { label: 'Shaker 1',  icon: '🥤' },
+  shaker2:  { label: 'Shaker 2',  icon: '🫙' },
+  shaker3:  { label: 'Shaker 3',  icon: '🧂' },
+  cowbell:  { label: 'Cowbell',   icon: '🔔' },
+  metro:    { label: 'Metro tick',icon: '📍' },
+  woodblock:{ label: 'Woodblock', icon: '🪵' },
+};
+
+function renderSoundGrid() {
+  soundGrid.innerHTML = '';
+  Object.entries(soundMeta).forEach(([key, meta]) => {
+    const btn = document.createElement('button');
+    btn.className = 'sound-option' + (key === currentSound ? ' selected' : '');
+    btn.innerHTML = `<span class="sound-icon">${meta.icon}</span>${meta.label}`;
+    btn.addEventListener('click', () => {
+      currentSound = key;
+      localStorage.setItem('bpm_sound', key);
+      // preview the sound
+      getCtx(); playSound(0.8);
+      renderSoundGrid();
+    });
+    soundGrid.appendChild(btn);
+  });
+}
+
+function openSoundModal() { renderSoundGrid(); soundModalBackdrop.classList.add('open'); }
+function closeSoundModal() { soundModalBackdrop.classList.remove('open'); }
+
+soundPickBtn.addEventListener('click', openSoundModal);
+soundModalBackdrop.addEventListener('click', e => { if(e.target===soundModalBackdrop) closeSoundModal(); });
 
 resetBtn.addEventListener('click', reset);
 
