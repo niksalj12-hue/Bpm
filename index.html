@@ -362,7 +362,7 @@ body { display: flex; align-items: center; justify-content: center; position: re
           <button class="bpm-arrow" id="arrowDown">▼</button>
         </div>
         <div class="bpm-number" id="bpmDisplay">—</div>
-        <input class="bpm-input" id="bpmInput" type="number" min="20" max="300" inputmode="numeric">
+        <input class="bpm-input" id="bpmInput" type="number" min="40" max="250" inputmode="numeric">
       </div>
     </div>
 
@@ -555,7 +555,7 @@ function calcBPM(times) {
   const iv=[]; for(let i=1;i<times.length;i++) iv.push(times[i]-times[i-1]);
   return 60000/(iv.reduce((a,b)=>a+b,0)/iv.length);
 }
-function clamp(v) { return Math.max(20,Math.min(300,v)); }
+function clamp(v) { return Math.max(40,Math.min(250,v)); }
 function adjustBPM(d) { setBPM(clamp((currentBPM||120)+d),true); }
 
 function setBPM(bpm, manual) {
@@ -759,7 +759,7 @@ function openInput() {
 }
 function closeInput() {
   const v = parseInt(bpmInput.value, 10);
-  if (!isNaN(v)&&v>=20&&v<=300) setBPM(v, true);
+  if (!isNaN(v)&&v>=40&&v<=250) setBPM(v, true);
   bpmInput.style.display = 'none'; bpmDisplay.style.display = '';
 }
 let tapOnBpm = false;
@@ -781,10 +781,20 @@ makeRepeat(arrowUp,1); makeRepeat(arrowDown,-1);
 // ════════════════════════════════════════════
 //  BUTTON EVENTS
 // ════════════════════════════════════════════
-tapBtn.addEventListener('touchstart',  onTap, {passive:false});
-tapBtn.addEventListener('mousedown',   onTap);
-tapBtnL.addEventListener('touchstart', onTap, {passive:false});
-tapBtnL.addEventListener('mousedown',  onTap);
+
+// Android fix: prevent double-firing from both touchstart and click
+let lastTapTime = 0;
+function onTapGuarded(e) {
+  const now = Date.now();
+  if (now - lastTapTime < 100) return; // ignore if fired twice within 100ms
+  lastTapTime = now;
+  onTap(e);
+}
+
+tapBtn.addEventListener('touchstart',  onTapGuarded, {passive:false});
+tapBtn.addEventListener('click',       onTapGuarded);
+tapBtnL.addEventListener('touchstart', onTapGuarded, {passive:false});
+tapBtnL.addEventListener('click',      onTapGuarded);
 
 resetBtn.addEventListener('click', reset);
 
