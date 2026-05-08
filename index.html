@@ -588,7 +588,8 @@ loadSongs();
 // ════════════════════════════════════════════
 let taps=[], currentBPM=null, dotIndex=0;
 let metroInterval=null, resetTimer=null;
-const RESET_MS = 3000;
+const RESET_MS  = 2500; // reset session if gap > 2.5s
+const MAX_TAPS  = 8;    // only use last 8 taps for BPM calculation
 
 // ════════════════════════════════════════════
 //  DOM
@@ -690,8 +691,14 @@ function stopMetronome() {
 // ════════════════════════════════════════════
 function onTap(e) {
   const now = performance.now();
-  if (taps.length > 0 && now-taps[taps.length-1] > RESET_MS) taps = [];
+
+  // Reset if gap since last tap is too long
+  if (taps.length > 0 && now - taps[taps.length-1] > RESET_MS) taps = [];
+
   taps.push(now);
+
+  // Keep only the last MAX_TAPS taps — prevents old taps from skewing BPM
+  if (taps.length > MAX_TAPS) taps = taps.slice(-MAX_TAPS);
   triggerFlash(); triggerRipple(); triggerPulse(); lightDot();
   playSound(1.0);
   const n = taps.length;
@@ -889,12 +896,13 @@ makeRepeat(arrowUp,1); makeRepeat(arrowDown,-1);
 // Use pointerdown — works reliably on both iOS and Android
 // without the double-fire problem of touchstart+click
 let lastTapTime = 0;
+const MIN_TAP_INTERVAL = 60000 / 250; // ~240ms = max 250 BPM
+
 function onTapGuarded(e) {
   e.preventDefault();
   const now = Date.now();
-  if (now - lastTapTime < 80) return;
+  if (now - lastTapTime < MIN_TAP_INTERVAL) return;
   lastTapTime = now;
-  // Ensure audio context is resumed (required on Android)
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
   onTap(e);
 }
