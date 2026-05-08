@@ -517,12 +517,24 @@ const sounds = {
     noiseLayer(ctx,noise(ctx,0.08),6000,1.5,'bandpass',0.008,0.20,vol,0);
     noiseLayer(ctx,noise(ctx,0.20),1800,2,'bandpass',0.015,0.08,vol,0);
   }},
-  // Shaker 3 — softer, egg-shaker with longer tail
-  shaker3: { label: 'Shaker 3', fn(vol) {
+  // Cabasa — metallic beads scraping ridged shell, sharp attack + metallic rattle
+  shaker3: { label: 'Cabasa', fn(vol) {
     const ctx=getCtx(), now=ctx.currentTime;
-    noiseLayer(ctx,noise(ctx,0.18),4200,0.7,'bandpass',0.010,0.28,vol,2000);
-    noiseLayer(ctx,noise(ctx,0.25),7500,1.2,'highpass',0.015,0.12,vol,0);
-    noiseLayer(ctx,noise(ctx,0.06),1500,3,'bandpass',0.003,0.10,vol,0);
+    // Sharp metallic attack transient — beads hitting shell
+    noiseLayer(ctx,noise(ctx,0.015),6500,0.6,'bandpass',0.001,0.55,vol,4000);
+    // Mid metallic rattle body
+    noiseLayer(ctx,noise(ctx,0.10),4000,1.2,'bandpass',0.003,0.40,vol,2500);
+    // High metallic shimmer tail
+    noiseLayer(ctx,noise(ctx,0.18),8500,0.8,'highpass',0.005,0.22,vol,0);
+    // Low resonance of the wooden shell
+    noiseLayer(ctx,noise(ctx,0.06),800,3,'bandpass',0.002,0.15,vol,0);
+    // Extra crisp click of beads
+    const osc=ctx.createOscillator(); osc.type='sine'; osc.frequency.value=3200;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(vol*0.18,now);
+    g.gain.exponentialRampToValueAtTime(0.001,now+0.012);
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(now); osc.stop(now+0.013);
   }},
   // Cowbell — FM synthesis classic
   cowbell: { label: 'Cowbell', fn(vol) {
@@ -589,7 +601,6 @@ loadSongs();
 let taps=[], currentBPM=null, dotIndex=0;
 let metroInterval=null, resetTimer=null;
 const RESET_MS  = 2500; // reset session if gap > 2.5s
-const MAX_TAPS  = 8;    // only use last 8 taps for BPM calculation
 
 // ════════════════════════════════════════════
 //  DOM
@@ -697,8 +708,6 @@ function onTap(e) {
 
   taps.push(now);
 
-  // Keep only the last MAX_TAPS taps — prevents old taps from skewing BPM
-  if (taps.length > MAX_TAPS) taps = taps.slice(-MAX_TAPS);
   triggerFlash(); triggerRipple(); triggerPulse(); lightDot();
   playSound(1.0);
   const n = taps.length;
@@ -916,7 +925,7 @@ tapBtnL.addEventListener('pointerdown', onTapGuarded);
 const soundMeta = {
   shaker1:  { label: 'Shaker 1',  icon: '🥤' },
   shaker2:  { label: 'Shaker 2',  icon: '🫙' },
-  shaker3:  { label: 'Shaker 3',  icon: '🧂' },
+  shaker3:  { label: 'Cabasa',   icon: '🪘' },
   cowbell:  { label: 'Cowbell',   icon: '🔔' },
   metro:    { label: 'Metro tick',icon: '📍' },
   woodblock:{ label: 'Woodblock', icon: '🪵' },
