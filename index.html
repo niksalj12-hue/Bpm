@@ -5,280 +5,236 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>TAP BPM</title>
+<title>BPM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&display=swap');
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #0a0a0a;
-  --surface: #111;
-  --surface2: #1a1a1a;
-  --accent: #e8ff47;
-  --accent2: #ff4f4f;
-  --blue: #7dd3fc;
-  --text: #f0f0f0;
-  --muted: #444;
+  --bg:       #0c0c0f;
+  --surface:  #16161a;
+  --surface2: #1e1e24;
+  --border:   rgba(255,255,255,0.07);
+  --accent:   #c8f135;
+  --accent-dim: rgba(200,241,53,0.12);
+  --blue:     #7eb8f7;
+  --text:     #f0f0f0;
+  --muted:    rgba(255,255,255,0.28);
+  --muted2:   rgba(255,255,255,0.10);
 }
 
 html, body {
   height: 100%; background: var(--bg); color: var(--text);
-  font-family: 'DM Mono', monospace;
+  font-family: 'Outfit', sans-serif;
   overflow: hidden; touch-action: manipulation;
+  -webkit-font-smoothing: antialiased;
 }
-body { display: flex; align-items: center; justify-content: center; position: relative; }
 
-/* ══════════════════════════════════════
-   PORTRAIT LAYOUT
-══════════════════════════════════════ */
-.container {
-  position: relative; z-index: 1;
-  display: flex; flex-direction: column; align-items: center;
-  width: 100%;
-  padding-top: max(env(safe-area-inset-top), 16px);
-  padding-bottom: 100px;
-  padding-left: max(env(safe-area-inset-left), 20px);
-  padding-right: max(env(safe-area-inset-right), 20px);
-  height: 100dvh;
-  justify-content: flex-start;
-  gap: 0;
+body { display: flex; align-items: center; justify-content: center; }
+
+/* ── MAIN ── */
+.app {
+  width: 100%; height: 100dvh;
+  display: flex; flex-direction: column;
+  padding: max(env(safe-area-inset-top), 16px) 24px 72px;
+  padding-left: max(env(safe-area-inset-left), 24px);
+  padding-right: max(env(safe-area-inset-right), 24px);
   transition: transform 0.32s cubic-bezier(.4,0,.2,1);
 }
-.container.shifted { transform: translateX(80vw); }
+.app.shifted { transform: translateX(80vw); }
 
-/* Each section gets equal flex to distribute space */
-.header       { flex-shrink: 0; }
-.song-strip   { flex: 1; min-height: 20px; max-height: 48px; }
-.bpm-section  { flex: 2; justify-content: center; }
-.tap-row      { flex-shrink: 0; }
-.bottom-row   { flex-shrink: 0; margin-top: auto; }
-
-/* list-btn — circular, matches icon-btn style, accent colored */
-.list-btn {
-  background: none; border: 1px solid var(--accent); color: var(--accent);
-  width: clamp(52px, 13vw, 64px); height: clamp(52px, 13vw, 64px);
-  border-radius: 50%; font-size: 20px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  -webkit-tap-highlight-color: transparent; transition: background .15s;
-  flex-shrink: 0;
-}
-.list-btn:active, .list-btn.open { background: rgba(232,255,71,0.1); }
-
-/* ── SONG NAME — centered, generous space ── */
-.song-strip { display: flex; align-items: center; justify-content: center; width: 100%; }
+/* ── SONG NAME ── */
 .song-name {
-  font-size: 16px; letter-spacing: 3px; color: var(--blue);
-  text-transform: uppercase; text-align: center;
-  width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  text-align: center; font-size: 13px; font-weight: 400;
+  letter-spacing: 0.12em; color: var(--blue);
+  text-transform: uppercase; min-height: 18px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  margin-bottom: 4px;
 }
 
-/* ── BPM NUMBER — large, centered ── */
+/* ── BPM ── */
 .bpm-section {
-  display: flex; flex-direction: column; align-items: center;
-  position: relative; width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; flex-shrink: 0;
 }
-.bpm-number-wrap {
-  display: flex; align-items: center;
-  width: 100%; justify-content: center;
-  user-select: none; -webkit-user-select: none;
-  position: relative;
-}
-/* Arrows pinned to the left, number stays centered */
 .bpm-arrows {
-  display: flex; flex-direction: column; gap: 6px;
   position: absolute; left: 0;
+  display: flex; flex-direction: column; gap: 6px;
 }
+.bpm-arrow {
+  width: 34px; height: 34px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s, color .15s;
+}
+.bpm-arrow:active { background: var(--accent-dim); color: var(--accent); }
+.bpm-arrow svg { width: 14px; height: 14px; }
+
 .bpm-number {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(100px, 22vh, 160px);
-  line-height: 1; color: var(--text);
-  transition: color 0.15s; letter-spacing: -2px; cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(88px, 22vh, 152px);
+  font-weight: 700; line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--text);
+  cursor: pointer;
+  transition: color .2s;
   text-align: center;
+  user-select: none; -webkit-user-select: none;
 }
 .bpm-number.active { color: var(--accent); }
 .bpm-number.manual { color: var(--blue); }
+.bpm-number.dim { color: var(--muted); }
 
-.bpm-arrow {
-  background: none; border: 1px solid var(--muted); color: var(--muted);
-  font-size: 14px; width: 32px; height: 32px; border-radius: 4px;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  -webkit-tap-highlight-color: transparent; transition: border-color .1s, color .1s;
-}
-.bpm-arrow:active { border-color: var(--accent); color: var(--accent); }
 .bpm-input {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(100px, 22vh, 160px);
-  line-height: 1; letter-spacing: -2px; color: var(--blue);
-  background: transparent; border: none; border-bottom: 3px solid var(--blue);
-  outline: none; width: 4ch; text-align: center; display: none;
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(88px, 22vh, 152px);
+  font-weight: 700; line-height: 1; letter-spacing: -0.04em;
+  color: var(--blue); background: transparent;
+  border: none; border-bottom: 2px solid var(--blue);
+  outline: none; width: 5ch; text-align: center; display: none;
 }
 
-/* ── Beat count inside tap ring ── */
-.tap-count {
-  font-family: 'DM Mono', monospace;
-  font-size: 13px; letter-spacing: 2px;
-  color: var(--muted); pointer-events: none;
-  min-height: 16px; transition: color .15s;
+.bpm-unit {
+  position: absolute; right: 0; bottom: 8px;
+  font-size: 11px; font-weight: 400; letter-spacing: 0.15em;
+  color: var(--muted); text-transform: uppercase;
 }
 
-/* ── TAP ROW — nav pills stretch to screen edges ── */
+/* ── TAP AREA ── */
+.tap-area {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+}
 .tap-row {
-  display: flex; align-items: center; justify-content: space-between;
-  width: 100%; gap: 0;
+  display: flex; align-items: center;
+  width: 100%; gap: 0; justify-content: space-between;
 }
 
-/* Tall pill nav buttons — fixed size, fill side space */
-.song-nav {
-  background: none; border: 1px solid var(--muted); color: var(--muted);
-  font-size: 28px;
+.nav-btn {
   flex: 1;
-  min-width: 64px;
-  height: clamp(120px, 22vh, 180px);
-  border-radius: 24px;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  height: clamp(110px, 20vh, 160px);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; cursor: pointer; color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
   -webkit-tap-highlight-color: transparent;
-  transition: border-color .15s, color .15s, background .15s;
+  transition: background .15s, color .15s, border-color .15s;
   margin: 0 10px;
 }
-.song-nav:first-child { margin-left: 0; }
-.song-nav:last-child  { margin-right: 0; }
-.song-nav:active { border-color: var(--blue); color: var(--blue); background: rgba(125,211,252,0.07); }
-.song-nav:disabled { opacity: 0.15; pointer-events: none; }
+.nav-btn:active { background: rgba(126,184,247,0.08); border-color: var(--blue); color: var(--blue); }
+.nav-btn:disabled { opacity: 0.15; pointer-events: none; }
+.nav-btn svg { width: 22px; height: 22px; }
 
-/* Tap button — sized relative to viewport, capped so nav pills get space */
+.tap-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; flex-shrink: 0; }
+
 .tap-btn {
-  width:  clamp(160px, 50vw, 210px);
-  height: clamp(160px, 50vw, 210px);
+  width:  clamp(170px, 50vw, 220px);
+  height: clamp(170px, 50vw, 220px);
   border-radius: 50%;
-  background: var(--surface); border: 2px solid var(--muted);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
   cursor: pointer; position: relative; overflow: hidden;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   -webkit-tap-highlight-color: transparent; user-select: none;
   touch-action: none;
-  transition: border-color .1s, transform .08s; will-change: transform; flex-shrink: 0;
+  transition: border-color .1s, transform .08s;
+  will-change: transform;
 }
-.tap-btn:active { transform: scale(0.95); border-color: var(--accent); }
-.tap-btn.metro-pulse { animation: metro-border 0.18s ease-out forwards; }
-@keyframes metro-border {
-  0%   { border-color: var(--accent); box-shadow: 0 0 24px 6px rgba(232,255,71,0.32); }
-  100% { border-color: var(--muted);  box-shadow: none; }
+.tap-btn:active { transform: scale(0.96); }
+.tap-btn.metro-pulse { animation: mpulse 0.2s ease-out forwards; }
+@keyframes mpulse {
+  0%   { border-color: var(--accent); box-shadow: 0 0 0 0 rgba(200,241,53,0.4); }
+  60%  { box-shadow: 0 0 0 12px rgba(200,241,53,0); }
+  100% { border-color: var(--border); box-shadow: none; }
 }
+
 .tap-ripple {
   position: absolute; width: 100%; height: 100%; border-radius: 50%;
   background: var(--accent); opacity: 0; transform: scale(0); pointer-events: none;
 }
-.ripple-animate { animation: ripple .4s ease-out forwards; }
-@keyframes ripple { 0% { transform:scale(0); opacity:.22; } 100% { transform:scale(1.5); opacity:0; } }
-.tap-text, .tap-sub, .tap-count {
-  pointer-events: none;
-  user-select: none;
-  -webkit-user-select: none;
+.tap-ripple.go { animation: ripple .45s ease-out forwards; }
+@keyframes ripple { 0% { transform:scale(0); opacity:.18; } 100% { transform:scale(1.6); opacity:0; } }
+
+.pulse-ring {
+  position: absolute; inset: -3px; border-radius: 50%;
+  border: 1.5px solid var(--accent); opacity: 0; pointer-events: none;
 }
-.tap-text { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: 6px; color: var(--text); }
-.tap-sub { font-size: 10px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; }
-.pulse-ring { position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; pointer-events: none; }
-.pulse-ring.go { animation: pulse-ring .4s ease-out forwards; }
-@keyframes pulse-ring { 0% { opacity:.8; transform:scale(1); } 100% { opacity:0; transform:scale(1.12); } }
+.pulse-ring.go { animation: pring .4s ease-out forwards; }
+@keyframes pring { 0% { opacity:.9; transform:scale(1); } 100% { opacity:0; transform:scale(1.1); } }
 
-.beat-dots { display: flex; gap: 10px; }
-.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); transition: background .1s, transform .1s; }
-.dot.lit { background: var(--accent); transform: scale(1.3); }
+.tap-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 15px; font-weight: 700; letter-spacing: 0.18em;
+  color: rgba(255,255,255,0.5); pointer-events: none;
+  user-select: none; -webkit-user-select: none;
+}
+.tap-count {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px; letter-spacing: 0.08em;
+  color: var(--muted); pointer-events: none;
+  user-select: none; -webkit-user-select: none;
+  min-height: 16px;
+}
 
-/* ── ICON BUTTONS — pinned to absolute bottom ── */
-.bottom-row {
-  display: flex; align-items: center; justify-content: space-between;
-  width: 100%;
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  padding: 12px 20px max(env(safe-area-inset-bottom), 16px);
-  background: linear-gradient(to bottom, transparent, var(--bg) 40%);
+/* Beat dots */
+.dots { display: flex; gap: 9px; }
+.dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--muted2); transition: background .1s, transform .1s;
+}
+.dot.lit { background: var(--accent); transform: scale(1.4); }
+
+/* ── BOTTOM RIBBON ── */
+.bottom-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: stretch;
   z-index: 10;
 }
-.icon-btn {
-  background: none; border: 1px solid var(--muted);
-  width: clamp(52px, 13vw, 64px); height: clamp(52px, 13vw, 64px);
-  border-radius: 50%;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  font-size: 22px; -webkit-tap-highlight-color: transparent;
-  transition: border-color .15s, background .15s; flex-shrink: 0;
+
+.action-btn {
+  flex: 1;
+  height: 56px;
+  background: none; border: none; border-right: 1px solid var(--border);
+  color: rgba(255,255,255,0.35);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .12s, color .12s;
+  flex-shrink: 0;
+  position: relative;
 }
-.icon-btn:active { opacity: .7; }
-.icon-btn:disabled { opacity: .22; pointer-events: none; }
-#resetBtn  { border-color: #555; color: #888; }
-#resetBtn:active { border-color: var(--accent2); color: var(--accent2); }
-#pauseBtn  { border-color: #555; color: #888; }
-#pauseBtn.playing { border-color: var(--accent); color: var(--accent); }
-#pauseBtn.paused  { border-color: var(--blue); color: var(--blue); }
-#saveBtn   { border-color: #555; color: #888; }
-#saveBtn:not(:disabled) { border-color: #4ade80; color: #4ade80; }
-#soundBtn  { border-color: var(--accent); color: var(--accent); }
-#soundBtn.muted { border-color: #555; color: #666; }
+.action-btn:last-child { border-right: none; }
+.action-btn svg { width: 20px; height: 20px; }
+.action-btn:active { background: rgba(255,255,255,0.06); color: #fff; }
+.action-btn:disabled { opacity: 0.2; pointer-events: none; }
+
+/* Active state — white icon, subtle accent underline */
+.action-btn.active-state {
+  color: #fff;
+}
+.action-btn.active-state::after {
+  content: '';
+  position: absolute; bottom: 0; left: 20%; right: 20%;
+  height: 2px; background: var(--accent); border-radius: 2px 2px 0 0;
+}
+
+/* Muted sound — dimmer */
+.btn-sound.muted { color: rgba(255,255,255,0.18); }
 
 /* ── FLASH ── */
 .flash { position: fixed; inset: 0; background: var(--accent); opacity: 0; pointer-events: none; z-index: 99; }
-.flash.go { animation: flash .12s ease-out forwards; }
-@keyframes flash { 0% { opacity:.07; } 100% { opacity:0; } }
+.flash.go { animation: flash .1s ease-out forwards; }
+@keyframes flash { 0% { opacity:.06; } 100% { opacity:0; } }
 
-/* ══════════════════════════════════════
-   LANDSCAPE LAYOUT
-══════════════════════════════════════ */
-@media (orientation: landscape) {
-  body { align-items: stretch; }
-
-  .container {
-    flex-direction: row; align-items: stretch;
-    max-width: 100%; height: 100dvh;
-    padding: 10px max(env(safe-area-inset-right), 16px) 10px max(env(safe-area-inset-left), 16px);
-    gap: 0;
-    justify-content: space-between;
-  }
-
-  /* Left col: narrow, just enough for BPM + controls */
-  .left-col {
-    display: flex; flex-direction: column; justify-content: space-between;
-    flex: 0 0 38%; min-width: 0; padding-right: 12px;
-  }
-
-  /* Right col: takes remaining ~62% */
-  .right-col {
-    display: flex; align-items: center; justify-content: center;
-    flex: 1; gap: 8px;
-  }
-
-  .tap-row { flex-direction: column; gap: 8px; }
-
-  .song-nav {
-    flex: 0;
-    width: clamp(40px, 6vw, 70px); height: 38px;
-    border-radius: 19px; font-size: 20px; margin: 0;
-  }
-
-  /* Tap button fills most of right col height */
-  .tap-btn {
-    width:  min(72vh, 55vw);
-    height: min(72vh, 55vw);
-  }
-
-  /* BPM as large as portrait */
-  .bpm-number { font-size: clamp(80px, 40vh, 200px); }
-  .bpm-input  { font-size: clamp(80px, 40vh, 200px); }
-
-  .song-name { font-size: 13px; max-width: 100%; }
-  .beat-dots { display: none; }
-
-  .bottom-row { justify-content: space-between; }
-  .icon-btn { width: 44px; height: 44px; font-size: 17px; }
-  .list-btn { width: 44px; height: 44px; font-size: 17px; }
-}
-
-/* ══════════════════════════════════════
-   SIDEBAR
-══════════════════════════════════════ */
+/* ── SIDEBAR ── */
 .sidebar {
   position: fixed; top: 0; left: 0; bottom: 0;
-  width: 80vw; max-width: 320px;
-  background: var(--surface2); border-right: 1px solid #222;
+  width: min(80vw, 300px);
+  background: var(--surface); border-right: 1px solid var(--border);
   z-index: 200; display: flex; flex-direction: column;
   transform: translateX(-100%);
   transition: transform .32s cubic-bezier(.4,0,.2,1);
@@ -286,53 +242,126 @@ body { display: flex; align-items: center; justify-content: center; position: re
 .sidebar.open { transform: translateX(0); }
 .sidebar-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 20px 16px 12px; border-bottom: 1px solid #222;
+  padding: max(env(safe-area-inset-top),20px) 20px 16px;
+  border-bottom: 1px solid var(--border);
 }
-.sidebar-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 3px; color: var(--accent); }
-.sidebar-close { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 4px 8px; -webkit-tap-highlight-color: transparent; }
-.sidebar-empty { padding: 24px 16px; font-size: 11px; color: var(--muted); letter-spacing: 2px; text-align: center; line-height: 1.8; }
+.sidebar-title { font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.sidebar-close {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.sidebar-close svg { width: 14px; height: 14px; }
+.sidebar-empty { padding: 32px 20px; font-size: 13px; color: var(--muted); line-height: 1.7; text-align: center; }
 .song-list { flex: 1; overflow-y: auto; padding: 8px 0; }
 .song-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 16px; cursor: pointer;
-  transition: background .15s; border-bottom: 1px solid #1e1e1e;
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 20px; cursor: pointer;
+  transition: background .12s; border-bottom: 1px solid var(--border);
   user-select: none; -webkit-user-select: none;
 }
-.song-item:active { background: #1e1e1e; }
-.song-item.active-song { background: #1a1f0a; }
-.song-item.dragging { opacity: .4; }
+.song-item:active { background: var(--surface2); }
+.song-item.active-song { background: rgba(200,241,53,0.06); }
+.song-item.dragging { opacity: .35; }
 .song-item.drag-over { border-top: 2px solid var(--accent); }
-.drag-handle { color: var(--muted); font-size: 16px; cursor: grab; padding: 4px; flex-shrink: 0; touch-action: none; }
+.drag-handle { color: var(--muted2); font-size: 15px; cursor: grab; padding: 4px; flex-shrink: 0; touch-action: none; line-height: 1; }
 .song-item-info { flex: 1; min-width: 0; }
-.song-item-name { font-size: 12px; letter-spacing: 1px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.song-item-bpm { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--accent); line-height: 1; }
-.song-item-del { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 4px 8px; flex-shrink: 0; -webkit-tap-highlight-color: transparent; transition: color .15s; }
-.song-item-del:active { color: var(--accent2); }
+.song-item-name { font-size: 14px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.song-item-bpm { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; color: var(--accent); line-height: 1.2; }
+.song-item-del {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: none; border: 1px solid transparent;
+  color: var(--muted2); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.song-item-del:active { color: #f87171; border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.08); }
+.song-item-del svg { width: 13px; height: 13px; pointer-events: none; }
 
-.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 199; opacity: 0; pointer-events: none; transition: opacity .32s; }
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5);
+  z-index: 199; opacity: 0; pointer-events: none; transition: opacity .32s;
+}
 .overlay.open { opacity: 1; pointer-events: all; }
 
-/* ── SOUND PICKER MODAL ── */
-.sound-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:300; display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s; }
-.sound-modal-backdrop.open { opacity:1; pointer-events:all; }
-.sound-modal { background:var(--surface2); border:1px solid #333; border-radius:12px 12px 0 0; padding:20px 20px max(env(safe-area-inset-bottom),24px); width:100%; max-width:420px; }
-.sound-modal-title { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:3px; color:var(--accent); margin-bottom:14px; }
-.sound-grid { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; }
-.sound-option { background:none; border:1px solid var(--muted); color:var(--muted); font-family:'DM Mono',monospace; font-size:10px; letter-spacing:1px; padding:12px 6px; border-radius:8px; cursor:pointer; text-align:center; transition:border-color .15s,color .15s,background .15s; -webkit-tap-highlight-color:transparent; line-height:1.5; }
-.sound-option .sound-icon { font-size:22px; display:block; margin-bottom:4px; }
-.sound-option:active { background:rgba(232,255,71,0.07); }
-.sound-option.selected { border-color:var(--accent); color:var(--accent); }
-
-.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 300; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
+/* ── MODALS ── */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,.7);
+  z-index: 300; display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+}
 .modal-backdrop.open { opacity: 1; pointer-events: all; }
-.modal { background: var(--surface2); border: 1px solid #333; border-radius: 4px; padding: 24px; width: 88%; max-width: 320px; display: flex; flex-direction: column; gap: 14px; }
-.modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 3px; color: var(--accent); }
-.modal-bpm { font-size: 11px; color: var(--muted); letter-spacing: 2px; }
-.modal-input { background: #111; border: 1px solid #333; border-bottom: 2px solid var(--accent); color: var(--text); font-family: 'DM Mono', monospace; font-size: 14px; padding: 10px 12px; border-radius: 2px; outline: none; width: 100%; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  padding: 24px 24px max(env(safe-area-inset-bottom),28px);
+  width: 100%; max-width: 420px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.modal-title { font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.modal-input {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; color: var(--text);
+  font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 400;
+  padding: 14px 16px; outline: none; width: 100%;
+  transition: border-color .15s;
+}
+.modal-input:focus { border-color: rgba(200,241,53,0.4); }
 .modal-row { display: flex; gap: 10px; }
-.modal-btn { flex: 1; background: none; border: 1px solid var(--muted); color: var(--muted); font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 10px; border-radius: 2px; cursor: pointer; transition: border-color .15s, color .15s; }
-.modal-btn.confirm { border-color: var(--accent); color: var(--accent); }
-.modal-btn:active { opacity: .7; }
+.modal-btn {
+  flex: 1; background: var(--surface2); border: 1px solid var(--border);
+  color: var(--muted); font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 500;
+  padding: 13px; border-radius: 12px; cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.modal-btn.confirm {
+  background: var(--accent-dim); border-color: rgba(200,241,53,0.3);
+  color: var(--accent);
+}
+.modal-btn:active { opacity: .75; }
+
+/* Sound grid */
+.sound-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
+.sound-opt {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 4px 12px;
+  cursor: pointer; text-align: center; color: var(--muted);
+  font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 500;
+  letter-spacing: 0.05em; line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.sound-opt .ico { font-size: 20px; display: block; margin-bottom: 5px; }
+.sound-opt:active { background: var(--surface); }
+.sound-opt.selected { background: var(--accent-dim); border-color: rgba(200,241,53,0.35); color: var(--accent); }
+
+/* ── LANDSCAPE ── */
+@media (orientation: landscape) {
+  .app {
+    flex-direction: row; align-items: stretch;
+    padding: 10px max(env(safe-area-inset-right),16px) 80px max(env(safe-area-inset-left),16px);
+    gap: 0;
+  }
+  .left-col {
+    display: flex; flex-direction: column; justify-content: space-between;
+    flex: 0 0 38%; padding-right: 16px;
+  }
+  .right-col {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .tap-row { flex-direction: column; gap: 8px; }
+  .nav-btn {
+    flex: 0; width: clamp(60px, 12vw, 110px); height: 40px;
+    border-radius: 12px; margin: 0;
+  }
+  .tap-btn { width: min(68vh, 52vw); height: min(68vh, 52vw); }
+  .bpm-number { font-size: clamp(72px, 38vh, 180px); }
+  .bpm-input  { font-size: clamp(72px, 38vh, 180px); }
+  .song-name { text-align: left; }
+  .bpm-unit { display: none; }
+  .dots { display: none; }
+}
 </style>
 </head>
 <body>
@@ -342,26 +371,19 @@ body { display: flex; align-items: center; justify-content: center; position: re
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    <div class="sidebar-title">Låtlista</div>
-    <button class="sidebar-close" id="sidebarClose">✕</button>
+    <span class="sidebar-title">Spellistor</span>
+    <button class="sidebar-close" id="sidebarClose">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
   </div>
-  <div id="sidebarEmpty" class="sidebar-empty">Inga sparade låtar än.<br>Tap ett tempo och tryck 💾</div>
+  <div id="sidebarEmpty" class="sidebar-empty">Inga sparade låtar.<br>Tap ett tempo och spara.</div>
   <div class="song-list" id="songList"></div>
 </div>
 
-<!-- Sound picker modal -->
-<div class="sound-modal-backdrop" id="soundModalBackdrop">
-  <div class="sound-modal">
-    <div class="sound-modal-title">Välj ljud</div>
-    <div class="sound-grid" id="soundGrid"></div>
-  </div>
-</div>
-
 <!-- Save modal -->
-<div class="modal-backdrop" id="modalBackdrop">
+<div class="modal-backdrop" id="saveModalBg">
   <div class="modal">
-    <div class="modal-title">Spara låt</div>
-    <div class="modal-bpm" id="modalBpmText">BPM: —</div>
+    <div class="modal-title">Spara tempo</div>
     <input class="modal-input" id="modalInput" type="text" placeholder="Låtnamn…" maxlength="40">
     <div class="modal-row">
       <button class="modal-btn" id="modalCancel">Avbryt</button>
@@ -370,245 +392,250 @@ body { display: flex; align-items: center; justify-content: center; position: re
   </div>
 </div>
 
-<!-- Main container — restructured for both orientations -->
-<div class="container" id="mainContainer">
+<!-- Sound picker modal -->
+<div class="modal-backdrop" id="soundModalBg">
+  <div class="modal">
+    <div class="modal-title">Välj ljud</div>
+    <div class="sound-grid" id="soundGrid"></div>
+  </div>
+</div>
 
-  <!-- LEFT COLUMN (portrait: full width stack; landscape: left panel) -->
-  <div class="left-col" id="leftCol">
+<!-- App -->
+<div class="app" id="app">
 
-    <div class="song-strip">
-      <div class="song-name" id="currentSongName"></div>
-    </div>
+  <!-- LEFT COL (portrait: full width; landscape: left panel) -->
+  <div class="left-col" id="leftCol" style="display:contents">
+    <div class="song-name" id="songName"></div>
 
-    <div class="bpm-section">
-      <div class="bpm-number-wrap" id="bpmWrap">
-        <div class="bpm-arrows">
-          <button class="bpm-arrow" id="arrowUp">▲</button>
-          <button class="bpm-arrow" id="arrowDown">▼</button>
-        </div>
-        <div class="bpm-number" id="bpmDisplay">—</div>
-        <input class="bpm-input" id="bpmInput" type="number" min="40" max="250" inputmode="numeric">
+    <div class="bpm-section" id="bpmSection">
+      <div class="bpm-arrows" id="bpmArrows">
+        <button class="bpm-arrow" id="arrowUp">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+        <button class="bpm-arrow" id="arrowDown">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
       </div>
-    </div>
-
-    <!-- Portrait tap row -->
-    <div class="tap-row portrait-only" id="tapRowPortrait">
-      <button class="song-nav" id="prevSong" disabled>‹</button>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
-        <div class="tap-btn" id="tapBtn">
-          <div class="tap-ripple" id="tapRipple"></div>
-          <div class="pulse-ring" id="pulseRing"></div>
-          <div class="tap-text">TAP</div>
-          <div class="tap-count" id="beatCount"></div>
-        </div>
-        <div class="beat-dots">
-          <div class="dot"></div><div class="dot"></div>
-          <div class="dot"></div><div class="dot"></div>
-        </div>
-      </div>
-      <button class="song-nav" id="nextSong" disabled>›</button>
-    </div>
-
-    <div class="bottom-row">
-      <button class="icon-btn" id="resetBtn" title="Nollställ">↺</button>
-      <button class="icon-btn" id="pauseBtn" disabled title="Pausa/Fortsätt">▶</button>
-      <button class="icon-btn" id="saveBtn"  disabled title="Spara låt">💾</button>
-      <button class="icon-btn" id="soundBtn" title="Ljud på/av">🔊</button>
-      <button class="icon-btn" id="soundPickBtn" title="Välj ljud" style="border-color:#a78bfa;color:#a78bfa;">🎵</button>
-      <button class="list-btn" id="listBtn">☰</button>
+      <div class="bpm-number dim" id="bpmDisplay">—</div>
+      <input class="bpm-input" id="bpmInput" type="number" min="40" max="250" inputmode="numeric">
+      <span class="bpm-unit">BPM</span>
     </div>
   </div>
 
-  <!-- RIGHT COLUMN: only visible in landscape -->
-  <div class="right-col" id="rightCol" style="display:none;">
-    <button class="song-nav" id="prevSongL" disabled>‹</button>
-    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+  <!-- TAP AREA -->
+  <div class="tap-area">
+    <div class="tap-row" id="tapRowPortrait">
+      <button class="nav-btn" id="prevSong" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="tap-wrap">
+        <div class="tap-btn" id="tapBtn">
+          <div class="tap-ripple" id="tapRipple"></div>
+          <div class="pulse-ring" id="pulseRing"></div>
+          <div class="tap-label">TAP</div>
+          <div class="tap-count" id="beatCount"></div>
+        </div>
+        <div class="dots">
+          <div class="dot"></div><div class="dot"></div>
+          <div class="dot"></div><div class="dot"></div>
+        </div>
+      </div>
+      <button class="nav-btn" id="nextSong" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- LANDSCAPE RIGHT COL -->
+  <div class="right-col" id="rightCol" style="display:none">
+    <button class="nav-btn" id="prevSongL" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="tap-wrap">
       <div class="tap-btn" id="tapBtnL">
         <div class="tap-ripple" id="tapRippleL"></div>
         <div class="pulse-ring" id="pulseRingL"></div>
-        <div class="tap-text">TAP</div>
+        <div class="tap-label">TAP</div>
         <div class="tap-count" id="beatCountL"></div>
       </div>
     </div>
-    <button class="song-nav" id="nextSongL" disabled>›</button>
+    <button class="nav-btn" id="nextSongL" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
   </div>
 
 </div>
 
+<!-- Bottom bar -->
+<div class="bottom-bar">
+  <!-- Reset -->
+  <button class="action-btn" id="resetBtn" title="Nollställ">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+  </button>
+  <!-- Pause/Play -->
+  <button class="action-btn btn-pause" id="pauseBtn" disabled title="Pausa">
+    <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+  </button>
+  <!-- Save -->
+  <button class="action-btn btn-save" id="saveBtn" disabled title="Spara">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+  </button>
+  <!-- Sound on/off -->
+  <button class="action-btn btn-sound" id="soundBtn" title="Ljud">
+    <svg id="soundIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+  </button>
+  <!-- Sound picker -->
+  <button class="action-btn btn-pick" id="soundPickBtn" title="Välj ljud">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+  </button>
+  <!-- List -->
+  <button class="action-btn btn-list" id="listBtn" title="Låtlista">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+  </button>
+</div>
+
 <script>
 // ════════════════════════════════════════════
-//  ORIENTATION SWITCHING
-// ════════════════════════════════════════════
-const tapRowPortrait = document.getElementById('tapRowPortrait');
-const rightCol       = document.getElementById('rightCol');
-const tapBtnL        = document.getElementById('tapBtnL');
-const tapRippleL     = document.getElementById('tapRippleL');
-const pulseRingL     = document.getElementById('pulseRingL');
-
-const prevSongL      = document.getElementById('prevSongL');
-const nextSongL      = document.getElementById('nextSongL');
-
-function applyOrientation() {
-  const landscape = window.matchMedia('(orientation: landscape)').matches;
-  tapRowPortrait.style.display = landscape ? 'none' : 'flex';
-  rightCol.style.display = landscape ? 'flex' : 'none';
-}
-window.addEventListener('resize', applyOrientation);
-applyOrientation();
-
-// ════════════════════════════════════════════
-//  AUDIO ENGINE — riktiga sampel
+//  AUDIO
 // ════════════════════════════════════════════
 let audioCtx = null, soundEnabled = true, keepAliveNode = null;
 let currentSound = localStorage.getItem('bpm_sound') || 'cabasa';
 
-// Inbäddade MP3-sampel (base64)
 const SAMPLES = {
   cabasa:    'SUQzBAAAAAAAZ1RFTkMAAAAIAAADUkVBUEVSAFREUkMAAAAMAAADMjAxOC0wNi0wNgBUWFhYAAAAEgAAA3RpbWVfcmVmZXJlbmNlADAAVFNTRQAAAA8AAANMYXZmNjAuMTYuMTAwAAAAAAAAAAAAAAD/+3DAAAAAAAAAAAAAAAAAAAAAAABJbmZvAAAADwAAACoAADSnAAsLEREXFxcdHSMjKSkpLy81NTU7O0FBR0dHTU1TU1lZWV9fZWVla2txcXd3d319goKIiIiOjpSUlJqaoKCmpqasrLKysri4vr7ExMTKytDQ1tbW3Nzi4uLo6O7u9PT0+vr//wAAAABMYXZjNjAuMzEAAAAAAAAAAAAAAAAkAkwAAAAAAAA0pzdseosAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//twxAAADj1NMJQTAAqKKSv/HvAARKUcbAMxt6Uxjfe/+9/u7v+Ii7uzydsQAYDC097QQJkyZNO/BAmTTv/+yCEZ/+13///4iIiIiE7vXuzyZAgQIEEIiLu7u75gDAZNO//F32MIECGRGe7vYJk73tEECZNOw8PzH/+YAI8PDAAAAAAPDw8fu3l3N3OZDPCJmYhEEAgIAJRAC9G+dp9qNWpdCj7FobGQ7ijVCmc7l8QQc5O7LtNvWFLOJuqi7h0lSPjEBdRsN0KAzsTa+011nkfPJcQnlc5zrF4mrT5iQKbtTX3TU7yHWBvWbYgU1AiaprXvZ5EvFh2j3394r2/d/8a3bN879qf69N5pvOMZ3r63fOHk94GAwYMBwCQheHz7mnC5Cbu////9Kqm63reWCRlgAJe1dhEuO//7csQHgBJRnW38xAACQzNuvMGb0Gz1KFdT88KNGsESRYV0cX+IzKaYQHBEcTn2IgjsKFyIIRjA/hJsQF9JDgURR54hiwq7EB3AoMeN2rivl0d7iu/ZFguU0/IFNqf3ZK7vrLcfb3s/CMOQhE7VN3F3lrl3mYsygaGC55BansOkRh3Nmj7GGnC7y5g81kNcTnAgxJQMPwxUjd7/3NeFiKQAALCJgtEwRRHHIG5sCQ4E8SABCEKw+oxeJlUVDW8V1QNFitxR7bRx+n/8/W1bU3mKNrafT6Q7yhekUsP0ZvRK/2WppG8Evr4BOD/FDuECyZEVGpjiWdEU+uacSaUy/sI6de1jQ/rIVrj3R2fxC1Mgxuf5lgM9O3506j2aD3rG3trYgLg5v9Pf+6qId2ZkQyQAAGIGN8ArJfJc//twxAgA0M1vd8wYsRJjs6649iEhLMopdZC/yt7sPo6fK78RabhygMOJabmAALLpjawr5BkUaxUlY2LrV6azw0OuayqqOjHHKqXZ2pdblOTR2Wl2lIAZEOABWLIrmZbKgTo8ELRVW73QllRHYxkdWUiTq0zztOEihp3FyhWIQsZJkKCljBBRfoX5vTmZm3kowEoLsZaDRhTuz6DoO8BAqAgvCVBREtl9ZA8nXOcNM0fZKJzex7vlq5T3SDi3uIqoVcewsqdvNzaPBLFSN7eVjuTxa8lUtSYkfI3d4NUQCEFrlHhmtHGx9PwKMTEiO81B+Z2pxYJiRBUfq6Dpmt2i1ggZVjWABh7I6HqCHxiuys7XsItkr7p9V91VHzdhun93uwCff2q8vrqrdAAAAEfCO4L5LTE5Q5EofP/7csQKAFK1m3XHsMiKAC0vOYMN+gFJSD4yExWZhAUPJTJZHVabk4g2RjI4e+1DluZr4h+cnUV3dsSdJy5bL+kmJvR2llzqG+cU7uzMjR2NlPsHxUeWLy0ZNyrlobdSnX3cdsww+X5ScO1WUbjVm9Cr+QzZUE2o+Yj8FThKsetLrbTYrLbqwn7q0tJy4Lugyzn/T/miN4y7u7uyGKIGMKBOPPE3jL2WM9kkAOg8FBPOjG4JfhwWAr1JK2se8zszbN6qm839SZZiTuzN30vNmwuH3tmZjb5TIwXCO7fAbZnZ3TSmrqM4mDHOrDhs90e1kyQyOOw/VeGUIHOGCpCG37nqM7CTcDgKj2pKlYQCjBVhnYGHX6CEhYl3eHdEFQAAKwjQhyALg/KUWQlRbBHidFy2aNz3WKPbOQoB//twxBGAUamTdceM0dKKva34wyK4Y1ZiArFEmWZAq6yZG5DOFZpv8LauGfKMzRa8lVTyI2ujMLWHPT7e7r82eWcTiEST1kRvwr2WqX/QcrvF8phMvMFHwkFHNis3TH3binzvDbmR16zPn7lxl/5v5wnQ4k8mZUEXJFkosPcaunMu87KZQABQAKPAVASTGMABmwlVBIH+3HtJzSGdZkLtufiu7JV6+d3bvlTV/JNjVtrVkMwU54ySo/nN34uO8xFG4z77LLQvY1/Wm4ZRoEdhZpFJlIJtKJ2bRJQeaBp2e6COlCguwqQI4qa1h6wegcDNiGOGSNPIbcWHZcxBIdHKqWdJMslmROtkbslEJxE3SzLQzFf1Es5cXD/1H8NCWOVYJ9yIh4h1UxUAACwBkDgUJuDLNE5kCOkWB//7csQLgE7hO3HHjLOSH63sePGV6RXB5GTk3WG7zaxRxvBdoOCUhI9XjGJjEeZFc6wIUgrsRAwUI5PCCR9cGm66WfbIZGwFo+5HYvOZZbF3paqOEFKWWhdSwtSs3o4aWiolWGEgYVUaC6wxJVPJeljEuS7/6LzNutpkAABxFxSCHYPs185VanbYyWLtHQbfSFgZEEE5ht2gYHdekm9DMOMElgM2ojtKgSWgPZTPDCLctQvZjVyN6I7TqGEMgUEgpQm4TMVikYrIrmXd1IY+3M5mmIgXCwkGllOiBYAyKiFkcGgyPqFmqwkA03J885pyQ5c5nxv916bdv/zfN/V4iGiHQiZUACMkGKwxRH0ML07cmpPNR2FzNE5IGVk/vxgxAjVV2zZpIPkxEpMZH49PJDyQVKddDc7wubGH//twxB6ATtyHZ8ekbFn2rCq4wZp5GoCgsKBVc7oySRpoLcMIPQujBQvoMEsi6ArIDArVizuigplPMKBhvQUgNKDRpQaK76Lj1yj3va3/qXfZu5UKUgAQAWcBEHa4+CAOi6CotJocgRUEhS/QiuUpzTETg1o5U6jMbDIhRHUuxj+l30I2sP3+5qRM7MzdJcuyUln7FmGOMxOw5Zps/XqrBSJTEqdFvW5WvjNVJd6qqbW/z1vnGaZw446veql4xRfEFOxBSelNfzRuQ1/ApXu8y8pkGQAAMt4XpToxtJiaKKMY/jmL2jzROhRuA1w0PiYKs1mu6aIrFaoldnQZTwUzSc8etIYdYxira1qTSSc0k1BjFVVRFI8zILAdJQEo0AhRl0nZ1RjgZpONtaSarbNuzLUT+apempQciP/7csQ2AE/RT03HoG/B/KxoeMMOeJqBwUFTOolc2wAne0Sxed1nfvNVl6mFMAAR0nssmMu2ATDIaaDkuW4dMrrsLU5FN1F5u3c5UpWzmEXwlOWSNck5wBO2VvLG5su+tjiFzr5XK3oMkvTiIoDKDqInEcuOXVH5M1La7F7Q/BYa+JfKlHvbhSDNSNqCFsMKIzVEXMno1GFKKigebqxUUaaCtbEmV3SSEs1/ZDezyal+TGPRIyYyF3Yh1yFrL0XralOo1eH6FBzR6hQVMby9QjLIHby8KR4pgfhfMw05IudyJWdH7NSOCovgqLh41pXLrdqOOGgLHGaJ9yz8MAYymmdbfTuAqr7UVF3LYGmm869b9fHr07jZEuCLUtcHOErclqfoCJStRAyfrbNz9mk8+fooOpaBJ/jaRI2d//twxEmAz2FZNoSk0cH2qKXQxJo5L3Ww5adHBSKZGhqewjGEa0+NhUWP85fFMCxU3IbkavxjpkU4bPQnA9Gs8B6eTGjReBQrR8UOl+Me2rX33cvg3PGRQ2hAGIn+HqoFDfwwEAu7TIGKyPwMObxynCeHNd/nPnGivq/VBbTUJANFS3JNrhJpomDPoXoJVQYKuOZChws3YqoBmUVASXOAiYVRwug7DiSRlmOSUkmyKeeCAdyNoDjzQkamUFJcCOLgKeQCysNgDqBsFSGIsJ6wEOwYC0kORZPEuYodD+mZ8YorkrOwkcXLFzYPGh3yxai4AElwgAxdoMh0bAtFK0RmXkUTrT0pmhq741CVFq0Ii1lThkZMWOhY6WDdwLmDkayUcMCrmcnPxyMCsfAzpXBTE+KDo3zIVKHipv/7csRfAM6ZRSyEGHqB6Kdk0PCkIANnCv2p5h4r6zMv4VytnZ68qJTcjsqiKZbdZuXDTUPsInvM4BgKcUaUKkXpboWRxRYRGkUABFO60p4Fa7xD1A9pINK/MKt49a3c3V5azbvZ2rj5Vi4ct/c9KsUkz12cT6ayj1KbSjGTm5VcyOcH3fXIpcF0bE00MlVAkXRhy0E8C9tnztORBUOBq425smxMjNfI4XnYz9M6MJU6+6gFisAAbUb2dOUgn3unn1hBE4VB2FOTHPIYwrCsnAJNGQIyg2cANwspGcAmm4gSZktDk8Sh6FkUQG1ISFNoGg5QHoZBLnLZPNGJ0U9ZDJQQOCoEQgXEI4CBZLTz2i43L6aVE2VXZM4OBhuiAApAABI0I/W7/a9u93tJnf5M00rznKXeWGfZ56k5//twxHoATYFPJQekeMGnIWSgsw1oHUEYNskhc9zZvj3Q5Yr2miW622CAV7SGdLKCghkWgrlHIdmOFLamu/Es+7Ee2zvwamxZApUTsjEPQylOXJYxrOfpgyiwGVMiJ4qGEYvvft/16vf93qYAIMgFmb61WfraZz8o3XoXfhipahiIqc+ASemUpqw85RaTxeUtM47DwEZR3aXV9BEmY6MZtzKqMa0pHUESmgM5VMgeI2PZ9MXh6EG2cwjCNzEBzRMkp8SCKeWlEBzhoT6BzCBTCIGG3A8PAhkmRCIqFjIsZppufQn+129q6gFF4AAq37yuco40szt4blou/zSDm8QaolUydnMrxaGD8cFhB4Tc1rIHIIO11XPjE35NP7qZHRl5iishTgpVgYgzKpMwMMwUSGHWMxqRRqAsoP/7csShAM6FHx8MJLVB8KokIMMOoDAIwpNHUEdXhN/f/m2vF2MKEjwNEtrVWtzrPPO261cgRKUQn/GomI9JoGqajazl+qptCgpMJAKBLjZt/5JbyazCXeJWw890pP5NaM6pKnqjdhKin5cPrGzi3LzW1lRFtfnHrM+Tj9u3j68c63Pv9yDZpV8f4GlDL+dC5fjNG4VV8v93N4vltq33+tf+WtqQ5zS2P+pW+L1fVQAAAFqZBAAAAER8yh/WtUlnGxvtSk1bzy1Fnj3ewXydes5wIw0RZycywVxJRGHIlCCyPiQ7VMRufsByOhMDIZkSTljITLW33H6gNAvCx0a3D+FdRLZjeNY1J9ROxnOozTVzG2HDFCm3f/59dN5bzjVDh1HHoClLCMhDVOhisLcdX/zbe//y5ucRD1fH//twxLsAzh1zIweYZcHiICLCnmABzDudDIpidH3hXHM2oancq36x/86/3/80V6vvPfagVjIzz9+/eaTyHPWE/Y+F9XIcroNcf//GvvP3/v6z////76zj/VKU/x9Yt9////+z2uKeDpLvmXAABYwAJLRwtbN6Z3anxiz6ZCe5+ej7A5lI0myGudhRKUJza3MuMLnKhrupdF8iKbJmUXpBtfXnJ5oMXNQjkjJAoKEGRBQUcOkN2Q3EeYFfG2hdVuEXPMCv5bQ2c6ZlCNB9rSAPbr3fbJb/p/7f/Ils8pR1kV/p9NjVB2oBQGFSAAOdBxEKFNVRK49J0NhGFXN6JBYKlCLh4c7m8TFPPKx1F7x/0Rk3BboFzRSaqERK+p15H/ER9sTpK7/b9P0clSP//ZT//+qP+8tp1sCARv/7csTYABw6GR05h4AJ6pkjo55gActn6/7zws5ciYi7q7usx9ebsKqBkPoQUwvUBmaST43lfvkDiBGVjVMggta+g50gKfGB2o+afjCUfdZQvZMHUYg4KXKLxYLGT0KU8rR2OOdJRH+pdbCe2DkXw/vYMdQZNijNWf4MdhXGiWzj9ONDTYOm6gAAIXBADJQaHRfepqWmpKe9f+kuzd5JOwc41cbjpMkoRon4YZjsLVIaZin+xIQhKFv37wcwVhPwEt8JgYYLAxA1D8lEjydgY37K/nmBtNyRGSpokCDo0D0CSNEkkk9J6f6ByNJ7ic4gJ0hQdRo+km5J36bkLkkR1NEkiJUz51GkhQJpokyDo/0He5Lok+9EgcjSTejSRo0nJfoUnJu7nP6aBCiemg/e7vT6Jybkk00Cb3vd//twxLwASfzJGywZAAHRlCLJgwz50KBPu7+/uSRPemmm9yT0+79yHu70/0KBGn0+hTS6T09nEAM8/XednXRkdGfhH1IUQ1elA8BEBwBpihyeWCyy6uZMAVMfeGG02zp3ejDSJ7llug3/3MnpOgDqcoMyGJoBBKZAjMroOhZjwn4LKtEGNyAI48OWjTbUf6etBWb4bl7ARQvYEhmz2aGHlwe+vBYQKbm29qYLNACQCHQUcWYAkEAshCCejMbopzPvex7WEZtUF2mpqKkqWKWzPzTLGxLCAUCYp98uKykxQegVmdKQjfo6aN2ZhVndPD88A8pC/hccwp/6h6mxW5UI58aVk/uT7ndJNC/u6NyfchWzGmfcl1YzPIWihrIShqdvat/nk6o5UN9bFwMv2VBUby3mRaG99NS+OP/7csTrglqCCw0sPS3J9BUi1YQYuf1M9/iqJdLro+585IdAGJAeuPR4UU7znZn5z+0fd47x7yNxp6oZbIp3IwIhQrGaalTFOrQ7oe6pV5Wm9VDMctOX61RIEomhSMycNidYw3s2a0urM60Q19WZNT3Z3y0Vmo5fTVkYrgpUIzyq5TGdEsiSqqseVjcxiPeznR0DUY1zkWqyrnlr1Oj76OxLszkK7dZVc133K7vMrKUMZXdjDpIFxCgDVBtsUklFt1Is7pvI5VTb7dYbS/nzURwOQnC86cslJZcM2qjPD+3Lff2jlivyq5QDciwoMJgZoKjwYKFYqAjQxZAJFygEWSFkszCgXU8ALamXemxyWW7+bWwe02hpQUIpTM70r7HMWMdyXavPIAQyAC2HU3u6bpfNPvX7jp1OX6aw//twxNWCEk0lEKyktYpNwWHBphahIZMCVIYgTDESEISbWNVf0qkU9K2KCFBKcEr/tak1qqTCYhEigzMFamUOu2nZ+d1bLP0lMqqzM9/d2RNUe/oVFBmQig6CYfQoVTGCQo423GGIAmIqwai77vTfatRxbEIclR+yxtUxg0450KAi7azFOUkFL2WXIGclnURi0C012hhhw8oOpIOg9qiAtkxjSqO44EQGP6qR/ZMYQpKOHoJemzERRxk6ODnC1tZ9qxWIZ2lfQ1DUPaCzA/CahCgowP4Qssl8s2loaGhp6/2pq7X3TX3Tt1+1qxWK1XHH1Y1tbX3bWrFf2tXq833fVnAZEAdiEQ8QhwgEEBgdEAhEAcAwBghAbAbEAdh4DwGgMh8P/EHiD/DhAHRDDoh/4h/8Qf/8OBbQ8//7cMTUgA4YjxSqPTCB4aJilPYV+OvSfos8O8otctYX8LmGNbbJqY+XhKRAxCcYpiaZ/dRNr6oS+hW+bzNkvqi8r2ynLjXRUnJxdQrfu0mZmsz1Xlu7Kli68xCKyqrvWZ5GP3TaGmVpEeiPtdkCAOubRXWnphE40UPueZT/jNvrd0ra9aE8JiId1KKH+ZZ57jU5nPzlm1Uico3SzWMZjEMccNpLHgIOKAsHXdMKEB4+i5HMOAhOCnHzkvoBGwMKDQBcMBGTKr2pVm1t2ocEuoKsFSSQISShCAEBAVCRqEjLUoEoaRotYv4tjpi1DFtbfPuZdHGkLaeDe1jCho6WFzacGEnigxJ9JF4GhUt5woq/z/s5kkif2HXCfB7oZnX+fF5XCeN/1gXAeFdN288b+30IMo3pgyiAGk//+3LE8YPXeccKDTz3QcwmosGWFfhyMSiQEnoUaFCgBJNAic4PAkiBZ6IGno00npPd0gQLwGDBwHgwDgccCBAIGADwOPBDA42DjRsDjAwYCDHwPG4CDBDRwXBQePwfBgsGD4PjeD4KNwcHg4L/gv8FwUABwLjjDeP+CBDghgIDAsG6AiG0fLeWcinEadOgoU/ymm/bJb970aYJOPV7jC+A8aaPFj+nlxGEWkt0E4K3EKqV1V7lFc9S7+qXmuN5/tOrm7RX9Fm+YSHcQ98R2TkS8vJd274sR1WBr6fVf2mrn6/in/m8y36Ud09+v77F+zfk3j+n/n3qzHOrM0S20IooADWCIeH52YjOWOGUdkeOsP/uTaZKaRHoxCxINRcyhnVEWSkvFRTWrSoP61aPI8L4I4YJzuRT2I8xGf/7cMTsgw9czxAMmLTCl0GhhaSK2EkEtrIpihigiQYSrjI8dDo4djo0ZzLoT7EV1c5q3RFqp1l1sQwULFQXFgsF33ROdas+xY8mQHv2A3eQtMqAL4ZlWX/AiibQYiKyGEMRG2kDN9Ady/9y/9NB9Jev36SkpvvXIMv33Kbu3WB06FtwZAjkraZfciVNJ3i+SRSTuBVGjc5Gg/BdJ3TcheC6TkSYKpuRvT/c5Cl/+gSSe79JD3iwumgT6Hu/Tcmmgel03gwn3v7+g///BRAiSd+m//9z38Gf+gej70ST00v+79E/+NwQMAAgQ4KOCHgI8ECgwYMF4MENgPxxwY3H4wKD/jg8YGP/gwQw42CYJaodO8r3rmzU63ttdWcJqr7KJ01DcSkIZl0wRWMs9ViXkPkvXMrWTKN5PmX/+3LE7gIPdPsODDEHyiUjYdmWFfimcvyRCMdUJU4kcin6d89OtJGqcNO5cyubNodAqoaVEUNcik5bTEQ7K2ssznOZEJQlFOTyPQhZLdNDzIRFY/JSrNPu1Gb7JUlam01ZGIqJsTWqqtldLGaNpQBBAC/jGlQWYt0CkgyrVqW2Uv6UuGSEiGRcTASGdjAzUfe97I7ShfKVCnEaPq16lkf6X0O2jQjJhMM9mqHqHTq4yuk25ASRLkoljOrNTcJHKCNUsHToeFCJ4JggtQcAZ1DSwAsQFSRI8m8szMjyLEUpM4WHErhdiBEr5nY4iqXPJYgEROTK4Eby7BsHf96mvfEr12n+TdxoKRoMkvUrZFGoBcqB2Xt2vOVdh7KMOj75Sfhw8doMwlOBlySNMFP0nh0GPg5vhO7uUb8XC//7cMT+A9VaDQgNJFmCFEFhwPYV+AeE7kT0aXEQm7xcEf39IFk0SXcjTQvS/ei6CBgwLgwXH8fAsYYFgAECgsHg/jfjg4OBAXGBgIFjAsDGBA8CBgQPjDAhxxx8GNgwQ3x/BRwXwQ0HHBwCCgUFjQYT6og2eAYNpW7XrlNSxS9egz/cqmksmpoaOz5huElMmed8j30yPREk6J/mlnaF+RDJ5WiSWbvFMp1Q96nVJkydpfzP3kr2Sead6+xbN9arr7o3uFN4oMDGBxgQ8aOOMDBjDDAAIFBxwfABgOPHgoPjDgwYw8YaBQUEC/H+NHjQXgxoEAgA8BHBwQ0BA8f4MGCgI2C/8Fg8f4PggeOCjDcEBR4MGACQYNgNQLu4tuMZLbLZI/1Uc6nfKs6AhuRYfLjxUh7DgVAVjG7/+3LE+AMQQOsQqTCvwpPAoUWEiyDPIAAvdyJr7A3W+h8cadia29PkNZXZv71h75ra27/nlv+7gb6BRgwLCBpdFRlzdbBxJAgNxsNWJc25dVwie/QlraKRdO9jHUaBm3YVKYsZEAJ6UOoJuhnYe+xqYgW5Ksj7kZyZKyCmgPRoMjcODRDsp1MPrieTlckIlXK1OCUTHnPWuqUySpIoqUVVpsHJA1mI2zg5rkzDY2Gq6qSQ5euxkRDeLuhD/3j4zXvfAAzt2pmbIqN7/Xzs/d4oDfNgW+Nuv9vXjsVM1bveM/3bnpzU7VT7zvDXG/b/3N779z5u9tt/X792nMz39xv5aP4u9+oQDlLIyZG7E7194j6DLlxfP2FsexHrUibLLahydajLTjajcpHhX7FEATBAVjBkPTEAbIgZAv/7cMT3AhSyCwoMPFHJyhziIPSYuMgXYRngTEYYTDAbEECwpFJR5hEYXIrjn97GrKyMlsOHp4eNHjuTMF4abMSFBeF/wXztsPczsm6UXgnGM61i5zHBR/gcDBDxxuAwfBs63l+81kt3dfpf8H4/Bfx8b8HHwUf+N4wKigACCQACKYjjGlePIMKNWrPehiVSFyOmw+4rMzCye6+k8uohIZ6LA+MBLJiCQzUCRADIhwkmSIH4WsiacslhWI7piZQTCKJNEvZKxKykqzCJqNyqSeJ6vlEkk85KDWgjioXs9BZUYW8QezkSqrWtyr1nRNJpM2n1lszf+l/I13vGqovJqL5rI6EMlpG3gKhKL9vzthUu1tjlbKK5GbNsilgMADnJBu3LoEp7lK9lteT7UkjXMkSFCZsswRI2BML/+3LE/QNUPg0KLDDNwmbBYgD0irh0bCyTB5EoicgxFAgeFk0JTJ5pAwJKWSghCu5tHzf/7FJtie9TrKuoiKQxz4y0u2EiCjE1zK0sN+HEkDmyW3Sl9d72mrQhJTE7zW+1Za4TRIJFvVvrb49t+94/btW4+4zNP3d9uWoW900rMcXbvaBNHu+YLR0dXm4aK3UC2CgAVStc1bWlqb+/Hs/vm1rUraa9J4sG7ctuOc1y1xbPNIUBY71cnG47vKcvWWiUaWDdDV4NfILepZPqSs0OpFOozqpsrs5EyuEd4hbyuzpV3KLY1XiHKGdCHFUSf67uQ+Wr7bv68FNFet3RyQvu27695a7doztGXo+l6izYn6xB8mI0WUdkPfm8tZaqsL2riNm0ZCmQon7Ro6ORnUTIJFzxaig+HxVI6f/7cMTxgFPxgxUHsMnKY7LilZSY+ePioXDJo6Y8YZshSAgMa2tQBFBxI0OB7MDphuJYaHxv5bdA60eIsTY0BOMHdqAthx7TDwB7g0REgUbPbP/29vAenzdGWnae5vF0r9343B+7P81kEWGfS41/9Vd+vNoM0T2fQo9eSzK6CWq7+MbldLey7d/lz7k3SXe3p6z3HnLtFXiD0nuRo66aFZDth9JNzyl50RGsKUkNI0viB9JnM6/zxrGvVfpISdifInL9NAjUQKk2oEcEMZoud56cXn1EOqJIrKHEL2bpGgixc2Nr+wY4TKsKeIF+iNIvd/92dza7fb39uwqn/9fs2vr+iI0j3CMJlA5p76a7cjMqluMFY2aTG8ZYi0VqCnmkeLGsrZdGv1oTRNHGTSizWqdI2uhrW1lnkoT/+3LE5wJP1TcYx5h2ykwnoYGUmbmRSNCLwHDohm8Q72hnXOilHkT/j6bCNsoNh6ZWl8o3EjZJcKwLkxSfS8ZWkcq1GEpjaLsyzK+FdGqTbTypKkxE/C7nDkkee3v48f9b5rl34qi4qKdHW2Xk3SVu3fHeot39c7v0c3Iyu+54pI5Ckmtmo8adtQAwggAacSBu1Lq9+Z3SYZ1db5S0He3q/i6iFuUkzaycHiAgx5+klqLTMtGDAVkvDrvfyR3O9C9v7z3/ijXTeofmvLGYwVlBVad1FdAqgQIZuGeIAbwJ0ZiDAsctxZbhGjsEQWHbVcjjkICGjwco0cCSaqLvm9ab+iq+atqDXJPQssFH1MbZNrXbNLb6QzggigcGOyuNdnuVKGZyuX6KES0ozpBGKjcGMUceSes8Uksstv/7cMTwg9EmCRAMJFXCmUHhAZSZuIgYsjnZGK0kRUwWjFU1IlMlAgUiowYaNgsPLNZ0gkQD7VUWXcRyrQmBFotHBuexpI1TlWVZll4h1OE1lnMyQrsiOIAUUGkY4k41ZJcG4naXIoYYfbKIzGCEQPDgQeBEeG7pFEciEZZaWR3FJdaeuNYNhSGVYV2Kl4e1s5HReS1ZB17mYKYgATGLSgMtvR7NT5ZLn8vzkkGnPvWy2bEy1Iu7ElEyCmUd02K7YlzQLieTLdEjBxAPAyNGDMCsKiau4JIYHYw7BiJgapPlqkdt7RiJUkFvfUGhRsSCGqab3Kqikq4709LWYe1k9NM65a7xNQ03fp8c9dODb19VyBPmyuCdcwrGBpmPTyCUJRkPE5V47Ho0gY1jUYGnjE6HTIObKZCoi3r/+3LE6oIR0gcOzCRRwrG9YYGEobkiaAKKiLUfWbCCCU0NEDXSMtZzO7Hy+u2XKqvfMW7bHNfYqJyvT09zUe62JykTLuiFquhxdRpzwlMRP2pl8nMl7qEO+s8UjdTdbMbVPcSyWV6rIR9vNPM4+tN7vnftO1uskXhzRyoo8gMqTQDgACNy4bIsd/NjcW205SGG4nxWKskO6cgFfGdmUDEjygqLIJkBdEKkbqA+3pEVQxgFRKwkj3P8nYcRNRcnU9CFlkEj1mnnuicvcN9HN6ct4Ryy8a5bG3H1J7smWaa7Xt5SdqlGdSZPnlITtFlK9qvG23Q0xsid+UZqvD4nOt2Zj21v/lZmZOcwUYshf8mZBkSvgIpfGQ+vemZzZpMLDD5Wa6gozJKk3aJ0/GJNvZQTlCmVNIT5TQvoZP/7cMTfg85B1xQGGE3CS7siAPSYebMU6hWrukN0hiJIkqi/TVKr+p8+r8vK7of8m+TLqqLGN6XtZNT0maHHmfpFPTZJcw/tvN93EdpzJylVaK9bJZ3L8j2l7d1UtKX7Np8pUu5+b3qlP5X0KcmyJVdMZE7rGaOyJVdXWtkqFv37ad6VCye/92bouSmO5N5aUo/FS0r5U+mBjvZ3IfWuAZTY2cwMzM2Jk+l00MWY5BCQyaKjS1l0qnTDPibE0j0DkjUmZySKa7TENhZHvazU9eegKsdZw4J8NTeqoSPMiXY7JnI/IcT6CZFCwqSSVq2HLPWNVUoPBHlcNOv0RRiCfNXBU2shehN5r0PyQHrUcxUt3/ibKqarsK9251KpwQJJjKd3MT2etpr/tKJlVEitRu6hxe9CdZLiJ+z/+3LE7wLTbakMp6TLyp4z4QGGMAEfqNrtEqLjhcd4cXhqYgs41E4/aLAlwtVvLFltCtzBrMBgISPFiJsY75tTLVVSOe2dmYTxEZ3/7Y8P/2p4DTM1eh3a81t7O1y38983b3gV2Jzq87f/TdxTQcq6xz/XU8pj2arz6WaVoYl8MLP+qepMQU1FMy4xMDCqM7Ve0ONF3cbo88yMedhLYzPz582ZOlNOGz4qNnrGTJ2JyP2QAwHg2gw+AP/diboO4kU8UIEAfAc0NwTlxjbQE4rdE1nra8X7zG1vrfc7w3/bdys3GytYDdme/Hee8PbZ6i+3wC4dmj455lKGrQTXNQHQ1BTe9wdP92hYw+hBcygcOoCzK/DwUhg/DZni1mbFEtoZhADod6bMcdI+R+56poaXHZjUNxmiodhtT//7cMTgA8/JRQ4IGG3KLCshAYYZOct5Fe4hr37LRr/dEgX7Mwrkla5ZBMFehuVb/mo9yvG0qDDXcevxFW8r74Gxhvuntf73+9XLaf653//08tQyz/f2N9nxW01/EW1VE1EyoigtHgeYlwnj4D6BFwaA9EC6EOdN738RPSTFhCJXiASLWZYmzhCYgaNisoXPGsQ9ySJE56LuRIxCgciem57kKBJyFz0fSe5C53f0PTS6BE9NG793T/Q9EgTTTciRJP/Scn0HS6F36JA9AiTTe9F0ui//Sch70P7um5NAgc5NN7nI00KXTd0n9ySTkD0STkbk/0CL9NL/ou7//973fpoHpuS6fQppPQ9/Qu7/+79E56aFO9RK5HBb9Le+/TUl67fpb1y7eivDyTkui6FP/yvJQ5y5yOGTls//+3LE6ANQOUkIDCTJwc2X4QWEmDnAWX6nVntCiJW6nEyeLud+kHu/pJP7wHxwGCjxgUcaOCg8GMNgwYMYYHGGGBAHBQfjY2PgMGCwYEADx4MYcDHwPBAuCHA8fBg4wD8ECAfHjxxuBDgQMYbwfjAscH44Dgo4OCB/B8fjDDAsccEyAMD/+/NBeq2R7ABRw/Y1QnSJQbmHG1g4B2h0XA4IA6DgdJguECofUeJmjYSOgoaFwASDQ0s5goPEhITsETjn+3oSPQwHQ0Pc1EXVAhdRiBjzUAy694RMnh3+j/1HoUqxjRRlLlwADsC+AojxDMAnxrAjghgBtH3I03okku5A9JChBnpue4F0KSSEGA6m5B3PT73PScDKJIOB1JF+5ySXRdAgQ/9/ROc/puRPQIEaB/Scl0u5JG9J6f/7cMT/g1aqCP4MMSECRsFgRYSJ+fTc7ueiRP/QpJOd3d6FNIFHuckl0KaBCgTe5AjQv6FyPvQJ/uSSQJ9NP9D0aPok+khQ9JE5zk+96XT/QJgwDTv0aSaaSF4MpJORJJA0l/03IU03dNAnwZS70PRuRIg6n0SYKPT2ahXKOAZHDJ8rpQ5UikDh43JCIkKdJ5VDDsFoh0w2pHVlQSK0awlKJKMGOQg8LKjlDEzBHLMDIezJVkdFKWU9gZnIti3o50vLdVrcyMpaJrrREVnoxF1TM17oY7qciNIVWZTUYwQoZlZXW56VI6UaylSjKRTGKd8xmW9TF7orK07VC3cJDJCkA5YXEW0nWgV3KcsoMqpVUrEUSQsq9JGUd3SRuciTrYnRVORg0G3uekLuegcg6N6ENS+0yGR2SWr/+3DE7gALjBMTJ4wCQwTBnwGmJKkIjojuy5dtQmyESoTO6lPCcr5UY7MrmWdnLzo7OrlluYhVo6klvZyqyTb0ImR2sspUkMVy0slKoz1lc7GO/stnuzgzWDnfJQEyjZoJfjHlhctIN/ohWLo3JoRKIA+iQIExOmj/ST7uj//ehchQuQ/pJPDjnIOhR9yTkSBAh6HoQ6h/Roem5EmJkX//Qve5A9D0DuiFu9NJ6BCj7+jRPegc4PJo+j6B6F3RpfoHv/d3I+iSQo0kkv0aBP97n9zkuhckg6NyN6fQJoxf8Sppveicl+/uSQpo0ndB0nJCF3Tf0SSSbnpOem5AmhRdLiF/7hMgQPTT6FyXSEiThZ73IEkAg7xG9EgTWElDmChwbyQeNnShw47LsNFTBXLV6sDz9OcMYoCd//tyxPEDUJoHAAwkoYoQPOAJJJbRkKatxM80IwSVcOgXG+Mfs0z82x1Q1CbzX8viJadQo5m0zH92zHMVdX2K2qHNdO/ZhL/QPWfI7Pv3Wi3bCy1XD1yEM5p2f6pTtjzHvO8/HNLzPLtJVR+d1TB/ClvmLrhEnPHlOeTC3XL1+EXCfTUUOpuvWjwj85lMTEek8zOePgU4Dd5OLIDWHRyJfLTsogeTlzwDBKnwJvcCc/xkFKLrTkGGmoZBWqC6jj0kxfLsajNRyVMaCRdBMqiFGsiLTcxJIjFTjg8SRkDuBc8nkwqDIk+GVE8pLZxEy7arZqnMSI0INOOHCg9DTO7U+bW6t9lGMOUUsRnebutVEDqUppdQwsVTREiaWplgTPPdys9UkiKDjwWScG47jnigjWq0uGIISiFCrIj/+3DE/wAXegr6rDEiCiuz38D0mCHoGlP/z+TfBCsRqAdB7WZf/27ATpZQeQ9QpoNgBrLKBRADmgEgPGETnmG/BDg/jxhGiivEtPjvxxsUL2PoreBOwoeQC5CBOo0DknhoBWkYIgYJJ8xCuSyiclIqPF9Zw2QLBd0V5s8dMFt9xkVhZorKimcUXEzkjf41u16MmZxNXOPP1EuVPnM8Zl6oxDMuEZjUj8jebKWFJxuU/DlTuWWuFbcjszMs8/YxXyEvM+fNV9zInqnY7tHoQye5AvebOitTvRXcJ3xXXu5VUP+W8uU0xfn4HYnz8L8thX2fyy/KXXyJUrDdFU4FDJg3ChUU376KX4nKluzw3Uy5s0cKmOeMyFEkY4EiAebcm7fKaglV6W6wsUuuU3f3rHdrH9iyNiDjH0/c//tyxO2D1IIG/AwZDcm0jSDA8wwhx0nVwNDCibwalW+bl2OXj8mt3SnEteT2hsN271jH3xDXflnl4Eazy15EvNfq0slCJqB8jHK7mMZ1RRilQFh1nFWfMzkC6QO/ZrN3FzdRxzyiQinDTwZn+4sxfvIYs7SIFmrZWussxL68VRFOtQUYgEDcRQFrpUQOTk9By8Y1B7iS2VRR1ZA+e1S1zs60Q81HzJnNts2ntr/uOcjE0+cmR+mNmPG3Fw91jRkvNTXltace3ma+ZMzsROzc7tPOy05kPtO1ZE7eUz+qymjXn1rPFZtNFCmdwKaApe7fAMU2V6Ahf+tNZaPX92nfeXMF0hT5iWX+/auybO2/92OMQnVJMtdUXp4lELlynicRuUkQp6W8ig969b0D1o1Cim0cqofBSV29pVD/+3DE9wCVKgr4DK0gijtBH9WTDnkopKKGoMtKKo1bOSnYoF90/y9e8geutUjFRy05uHU1m1cLn+nd+WdMKQlhtfYd+7eeJfN3cb/N3fP431/ndvw76/wT4bzvpB4gzds6HboTKmrTrdoxvBSGL61fkyXWsl+otXI8j+rqLKV+ogTIlFlrIldRZJZEvrIXVUw6UmwihGQJMYukCqidukuQkqY+YKOThZuyu0oY1vxwyEATz6rMUppiU2JLnd9TiHWUarM3rNvCbWx7Q/1DGa0TEpKuMatnhLoLYwp05AjJSSQbDHgjfU9Mcg3my92kl1b5SiuHd/E/1Us5Hb2a6JueU5i7yjEyMOZrCyKet/bFukxVvb6W7bGTF/d3l5+3OmKd0t8wU5x/YQNhCfAAfR4kBZ1dF1mdtddt//tyxO0DEb4HAiekwBqFQR9BhJn4JFk2V/u7Mjm1VGqqkizXZbqqlYxupqUpRHqqqtdLaTNPuWNL+c+///30u9l7fX2Zad8b2reqd068HLjmtoVj/vZtDSOqPH2qRHoCkoiCHgpJuEKBGCTusIUCBNCIEfQoUSTTyqaXSBJ3EfQo0KJJNyFMPIeRIy5g0WP1/svpa5v+EtHKTOnNmgJJH1pInuTS6BF00SSaF6Qk9cvhkhqikUrFWaaOP51AylrK+JJG2Iq48o5mcMIo41eQp5Me/TV9EXz81yXPDd/QOScXFiOoGD27WF9VqERUt9ruQO5Dfnyqbnd6SaNC5NLpv6JEj6NE5ySaSPpIEHROSQov0fTTcm9Ejc+cKoCHBoEiQ6TgEjJHNlknr9qrTUe+HEkvX7//motlbMz/+3DE5wATLgD8DKTBCWUwINTRiujMzVb2eKd5ytYkSS9PJxLX7z3mW3uRzuChJRKWLI45s+f5bZz98qqrf6eW3y2c1H+qqUcrSOV3mSM9t5qOf0lrTlUSo4lUsSJVRJJ/LJdqqpn0clv9aai1POPOPlbKNVvNAKP8zIKEqOJEpatankjRyTzMyRpMQU1FMy4xMDCqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//tyxP+CF1oI+MylIApVQZ3BhJgAqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=',
   woodblock: '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',
   metro:     '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MeeoWMpeXtbGVQhGQjRcNhtO4zQpVLFnlOlcEKXe0ejUmqlQZdob2ZaSD9ZOlJIuOl9jFO56uVpSLKX0p8v1p7nCOOqPSleqs4ibzn57/G7XpF14c6EOqCl4wgsY07Din3xdPUhExwAAAAOO9Y4XL1O3r6v03rL3QYqdrx3/+3LEDAGPGM0njJkYQkEqIkGniyDOkRxZtZSN8NvzLpXK4zSxzKldKjiUPQ3TOGv6GK6sTTZq3jA5ZsigUXCTmxCak6BBcs7tYflGA2IPCBSjWFbVSDzJZwbFO9MzUNLAVJpIFEQsGCDQ888xRpGpGEtnJf+ijoaD4lFrj/Ui7ZQKA16GZMhg0/V42d8MhmPVDitIB/2zrMXe2j/P8p+TP+XwU7f1MVehjwwYfTYHjoEMhg1IGT+bLr/tXa+rjZVwvmsuqta2p277W67pWq1XK107aurGtqLyrDZVvV6sddqdKx0rv/5VM9m/76eX+Z55ZHz2TguPjcb4L4APAfwX/j/3U0/rp7v7+NUP/JaWlauYDGBgNjGboKaXHAKMQKOHVf9k0DwEy6kf+SMiZM1dUz+SeSoYqkf1M//7cMQaApC05xAOYW8CHbJgocSXGEQiMYmRv4/0nNVl1FzU1Ntc0EMByOFjUQ1s1XV11TUQK5qaKAPQYXWXD+ovqmq5qprmofjb9XVW9X/X9TNdp3zvI1GtCNIt4owZjzjlZW9VbHAQOD/u/Q/7/QbJ5LCBgHmIgOZfmh7OoGgwcAQMmMBAOUAwvkoEjU7ru0X0ENNOjcO0MZoqGTJiqdGBwMXy+SO9+Kj54hPfnD4pAUBTyQqAUmJv/+cAFxSKedBg+dAU+SkTzh//nTxwVinudgF///H47jP0Gjm8PQoN///wrxvx//HY8cHuN44YAAAAAAlVyqqprVVgqLtKj1ExPBmN1kctaqvsBH1VJUAjCrsyqqr/7BhVAV/4f/36sFHWY+H60mNQEmFBQEqqrV//h/OquzKTMf//+3LEJYPMsRMDobxqiAAANIAAAASFEy/jQl///8goJBRQV3F0KKb/gu8WchpMkNpMQU1FMy4xMDCqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqg==',
   cowbell:   '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',
 };
-
 const SAMPLE_META = {
   cabasa:    { label: 'Cabasa',    icon: '🪘' },
   woodblock: { label: 'Woodblock', icon: '🪵' },
-  metro:     { label: 'Metronom',  icon: '🔔' },
+  metro:     { label: 'Metro',     icon: '🔔' },
   cowbell:   { label: 'Cowbell',   icon: '🐄' },
 };
-
-const decodedBuffers = {};
+const decoded = {};
 
 function getCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
 }
-
 function startKeepAlive() {
-  const ctx = getCtx();
   if (keepAliveNode) return;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  gain.gain.value = 0.00001;
-  osc.connect(gain); gain.connect(ctx.destination);
-  osc.start(); keepAliveNode = osc;
+  const ctx = getCtx();
+  const osc = ctx.createOscillator(), g = ctx.createGain();
+  g.gain.value = 0.00001; osc.connect(g); g.connect(ctx.destination); osc.start();
+  keepAliveNode = osc;
 }
-
-function b64ToArrayBuffer(b64) {
-  const bin = atob(b64); const buf = new ArrayBuffer(bin.length);
-  const view = new Uint8Array(buf);
-  for (let i = 0; i < bin.length; i++) view[i] = bin.charCodeAt(i);
-  return buf;
+function b64ToAB(b64) {
+  const bin = atob(b64), buf = new ArrayBuffer(bin.length), v = new Uint8Array(buf);
+  for (let i=0;i<bin.length;i++) v[i]=bin.charCodeAt(i); return buf;
 }
-
 async function loadSample(key) {
-  if (decodedBuffers[key]) return;
-  try {
-    const ctx = getCtx();
-    decodedBuffers[key] = await ctx.decodeAudioData(b64ToArrayBuffer(SAMPLES[key]));
-  } catch(e) { console.warn('Sample load failed:', key, e); }
+  if (decoded[key]) return;
+  try { decoded[key] = await getCtx().decodeAudioData(b64ToAB(SAMPLES[key])); } catch(e) {}
 }
-
-async function loadAllSamples() {
-  for (const key of Object.keys(SAMPLES)) await loadSample(key);
-}
+async function loadAll() { for (const k of Object.keys(SAMPLES)) await loadSample(k); }
 
 function playSound(vol) {
-  if (!soundEnabled) return;
-  vol = vol || 1;
-  const ctx = getCtx();
-  const buf = decodedBuffers[currentSound];
-  if (!buf) { loadSample(currentSound); return; }
-  const src = ctx.createBufferSource();
-  src.buffer = buf;
-  const gain = ctx.createGain();
-  gain.gain.value = vol * 1.2;
-  src.connect(gain); gain.connect(ctx.destination);
-  src.start(ctx.currentTime);
+  if (!soundEnabled) return; vol = vol||1;
+  const buf = decoded[currentSound]; if (!buf) return;
+  const src = getCtx().createBufferSource(), g = getCtx().createGain();
+  src.buffer = buf; g.gain.value = vol * 1.15;
+  src.connect(g); g.connect(getCtx().destination); src.start();
 }
 
-function playShaker(vol) { playSound(vol); }
-
-// Ladda alla sampel vid första interaktion
-function initAudio() { getCtx(); loadAllSamples(); }
-window.addEventListener('pointerdown', initAudio, { once: true });
-window.addEventListener('touchstart',  initAudio, { once: true });
+function initAudio() { getCtx(); loadAll(); }
+window.addEventListener('pointerdown', initAudio, {once:true});
 
 // ════════════════════════════════════════════
-//  SONG LIST
+//  ORIENTATION
+// ════════════════════════════════════════════
+const tapRowPortrait = document.getElementById('tapRowPortrait');
+const rightCol       = document.getElementById('rightCol');
+const leftCol        = document.getElementById('leftCol');
+const tapBtnL        = document.getElementById('tapBtnL');
+const tapRippleL     = document.getElementById('tapRippleL');
+const pulseRingL     = document.getElementById('pulseRingL');
+const prevSongL      = document.getElementById('prevSongL');
+const nextSongL      = document.getElementById('nextSongL');
+const beatCountL     = document.getElementById('beatCountL');
+
+function applyOrientation() {
+  const ls = window.matchMedia('(orientation: landscape)').matches;
+  tapRowPortrait.style.display = ls ? 'none' : 'flex';
+  rightCol.style.display       = ls ? 'flex'  : 'none';
+  leftCol.style.cssText        = ls ? '' : 'display:contents';
+}
+window.addEventListener('resize', applyOrientation);
+applyOrientation();
+
+// ════════════════════════════════════════════
+//  SONGS
 // ════════════════════════════════════════════
 let songs = [], currentSongIndex = -1;
-function loadSongs() { try { songs=JSON.parse(localStorage.getItem('bpm_songs')||'[]'); } catch(e){ songs=[]; } }
-function saveSongs() { try { localStorage.setItem('bpm_songs',JSON.stringify(songs)); } catch(e){} }
+function loadSongs() { try { songs = JSON.parse(localStorage.getItem('bpm_songs')||'[]'); } catch(e) { songs=[]; } }
+function saveSongs() { try { localStorage.setItem('bpm_songs', JSON.stringify(songs)); } catch(e) {} }
 loadSongs();
 
 // ════════════════════════════════════════════
-//  CORE STATE
+//  STATE
 // ════════════════════════════════════════════
 let taps=[], currentBPM=null, dotIndex=0;
 let metroInterval=null, resetTimer=null;
-const RESET_MS  = 2500; // reset session if gap > 2.5s
+const RESET_MS=2500, MIN_INTERVAL=60000/250;
 
 // ════════════════════════════════════════════
 //  DOM
 // ════════════════════════════════════════════
-const mainContainer   = document.getElementById('mainContainer');
-const tapBtn          = document.getElementById('tapBtn');
-const bpmDisplay      = document.getElementById('bpmDisplay');
-const bpmInput        = document.getElementById('bpmInput');
-const bpmWrap         = document.getElementById('bpmWrap');
-const beatCount       = document.getElementById('beatCount');
-const beatCountL      = document.getElementById('beatCountL');
-
-const resetBtn        = document.getElementById('resetBtn');
-const pauseBtn        = document.getElementById('pauseBtn');
-const saveBtn         = document.getElementById('saveBtn');
-const soundBtn        = document.getElementById('soundBtn');
-resetBtn.addEventListener('click', reset);
-const flash           = document.getElementById('flash');
-const tapRipple       = document.getElementById('tapRipple');
-const pulseRing       = document.getElementById('pulseRing');
-const dots            = document.querySelectorAll('.dot');
-const arrowUp         = document.getElementById('arrowUp');
-const arrowDown       = document.getElementById('arrowDown');
-const sidebar         = document.getElementById('sidebar');
-const sidebarClose    = document.getElementById('sidebarClose');
-const overlay         = document.getElementById('overlay');
-const songListEl      = document.getElementById('songList');
-const sidebarEmpty    = document.getElementById('sidebarEmpty');
-const currentSongName = document.getElementById('currentSongName');
-const prevSong        = document.getElementById('prevSong');
-const nextSong        = document.getElementById('nextSong');
-const modalBackdrop   = document.getElementById('modalBackdrop');
-const modalBpmText    = document.getElementById('modalBpmText');
-const modalInput      = document.getElementById('modalInput');
-const modalCancel     = document.getElementById('modalCancel');
-const modalConfirm    = document.getElementById('modalConfirm');
+const app          = document.getElementById('app');
+const tapBtn       = document.getElementById('tapBtn');
+const bpmDisplay   = document.getElementById('bpmDisplay');
+const bpmInput     = document.getElementById('bpmInput');
+const beatCount    = document.getElementById('beatCount');
+const resetBtn     = document.getElementById('resetBtn');
+const pauseBtn     = document.getElementById('pauseBtn');
+const pauseIcon    = document.getElementById('pauseIcon');
+const saveBtn      = document.getElementById('saveBtn');
+const soundBtn     = document.getElementById('soundBtn');
+const soundIcon    = document.getElementById('soundIcon');
+const soundPickBtn = document.getElementById('soundPickBtn');
+const listBtn      = document.getElementById('listBtn');
+const flash        = document.getElementById('flash');
+const tapRipple    = document.getElementById('tapRipple');
+const pulseRing    = document.getElementById('pulseRing');
+const dots         = document.querySelectorAll('.dot');
+const arrowUp      = document.getElementById('arrowUp');
+const arrowDown    = document.getElementById('arrowDown');
+const sidebar      = document.getElementById('sidebar');
+const sidebarClose = document.getElementById('sidebarClose');
+const overlay      = document.getElementById('overlay');
+const songListEl   = document.getElementById('songList');
+const sidebarEmpty = document.getElementById('sidebarEmpty');
+const songName     = document.getElementById('songName');
+const prevSong     = document.getElementById('prevSong');
+const nextSong     = document.getElementById('nextSong');
+const saveModalBg  = document.getElementById('saveModalBg');
+const modalInput   = document.getElementById('modalInput');
+const modalCancel  = document.getElementById('modalCancel');
+const modalConfirm = document.getElementById('modalConfirm');
+const soundModalBg = document.getElementById('soundModalBg');
+const soundGrid    = document.getElementById('soundGrid');
 
 // ════════════════════════════════════════════
 //  VISUALS
 // ════════════════════════════════════════════
-function triggerFlash()  { flash.classList.remove('go'); void flash.offsetWidth; flash.classList.add('go'); }
-
-function triggerRippleOn(rippleEl) { rippleEl.classList.remove('ripple-animate'); void rippleEl.offsetWidth; rippleEl.classList.add('ripple-animate'); }
-function triggerPulseOn(ringEl)    { ringEl.classList.remove('go'); void ringEl.offsetWidth; ringEl.classList.add('go'); }
-function triggerMetroPulseOn(btn)  { btn.classList.remove('metro-pulse'); void btn.offsetWidth; btn.classList.add('metro-pulse'); }
-
-function triggerRipple() { triggerRippleOn(tapRipple); triggerRippleOn(tapRippleL); }
-function triggerPulse()  { triggerPulseOn(pulseRing); triggerPulseOn(pulseRingL); }
-function triggerMetroPulse() { triggerMetroPulseOn(tapBtn); triggerMetroPulseOn(tapBtnL); }
-
-function syncTapSub(txt) {}
-function syncBeatCount(txt) {
-  beatCount.textContent = txt;
-  if (beatCountL) beatCountL.textContent = txt;
-}
+function fx(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+function triggerFlash()      { fx(flash, 'go'); }
+function triggerRipple()     { fx(tapRipple, 'go'); fx(tapRippleL, 'go'); }
+function triggerPulse()      { fx(pulseRing, 'go'); fx(pulseRingL, 'go'); }
+function triggerMetroPulse() { fx(tapBtn, 'metro-pulse'); fx(tapBtnL, 'metro-pulse'); }
+function syncCount(n)        { const t = n>0?`${n}`:''; beatCount.textContent=t; beatCountL.textContent=t; }
 
 function lightDot() {
-  dots.forEach(d => d.classList.remove('lit'));
-  dots[dotIndex % dots.length].classList.add('lit'); dotIndex++;
-  setTimeout(() => dots.forEach(d => d.classList.remove('lit')), 160);
+  dots.forEach(d=>d.classList.remove('lit'));
+  dots[dotIndex%dots.length].classList.add('lit'); dotIndex++;
+  setTimeout(()=>dots.forEach(d=>d.classList.remove('lit')), 160);
 }
 
 // ════════════════════════════════════════════
@@ -618,13 +645,13 @@ function calcBPM(times) {
   const iv=[]; for(let i=1;i<times.length;i++) iv.push(times[i]-times[i-1]);
   return 60000/(iv.reduce((a,b)=>a+b,0)/iv.length);
 }
-function clamp(v) { return Math.max(40,Math.min(250,v)); }
-function adjustBPM(d) { setBPM(clamp((currentBPM||120)+d),true); }
+function clamp(v) { return Math.max(40, Math.min(250, v)); }
+function adjustBPM(d) { setBPM(clamp((currentBPM||120)+d), true); }
 
 function setBPM(bpm, manual) {
   currentBPM = Math.round(bpm);
   bpmDisplay.textContent = currentBPM;
-  bpmDisplay.className = 'bpm-number ' + (manual?'manual':'active');
+  bpmDisplay.className = 'bpm-number ' + (manual ? 'manual' : 'active');
   saveBtn.disabled = false;
   startMetronome(currentBPM);
 }
@@ -635,96 +662,96 @@ function setBPM(bpm, manual) {
 function startMetronome(bpm) {
   stopMetronome(); if (!bpm) return;
   startKeepAlive();
-  metroInterval = setInterval(() => { playShaker(0.65); triggerMetroPulse(); lightDot(); }, 60000/bpm);
-  pauseBtn.disabled = false; pauseBtn.textContent = '⏸';
-  pauseBtn.classList.remove('paused'); pauseBtn.classList.add('playing');
+  metroInterval = setInterval(()=>{ playSound(0.65); triggerMetroPulse(); lightDot(); }, 60000/bpm);
+  pauseBtn.disabled = false;
+  setPauseIcon('pause');
 }
 function stopMetronome() {
   clearInterval(metroInterval); metroInterval = null;
+}
+function setPauseIcon(state) {
+  pauseBtn.className = 'action-btn btn-pause' + (state === 'pause' ? ' active-state' : '');
+  pauseIcon.innerHTML = state === 'pause'
+    ? '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>'
+    : '<polygon points="5 3 19 12 5 21 5 3"/>';
 }
 
 // ════════════════════════════════════════════
 //  TAP
 // ════════════════════════════════════════════
-function onTap(e) {
+let lastTapTime = 0;
+function onTapGuarded(e) {
+  e.preventDefault();
+  const now = Date.now();
+  if (now - lastTapTime < MIN_INTERVAL) return;
+  lastTapTime = now;
+  if (audioCtx?.state === 'suspended') audioCtx.resume();
+  onTap();
+}
+function onTap() {
   const now = performance.now();
-
-  // Reset if gap since last tap is too long
-  if (taps.length > 0 && now - taps[taps.length-1] > RESET_MS) taps = [];
-
+  if (taps.length>0 && now-taps[taps.length-1]>RESET_MS) taps=[];
   taps.push(now);
-
   triggerFlash(); triggerRipple(); triggerPulse(); lightDot();
   playSound(1.0);
   const n = taps.length;
-  syncBeatCount(n > 0 ? `${n}` : '');
-  if (n < 2) {  stopMetronome(); return; }
-  const bpm = calcBPM(taps);
-  setBPM(bpm, false);
-  
+  syncCount(n);
+  if (n<2) { stopMetronome(); return; }
+  setBPM(calcBPM(taps), false);
   clearTimeout(resetTimer);
-  resetTimer = setTimeout(() => {}, RESET_MS);
+  resetTimer = setTimeout(()=>syncCount(0), RESET_MS*2);
 }
 
 // ════════════════════════════════════════════
 //  RESET
 // ════════════════════════════════════════════
 function reset() {
-  taps = []; currentBPM = null; dotIndex = 0;
+  taps=[]; currentBPM=null; dotIndex=0;
   stopMetronome();
-  bpmDisplay.textContent = '—'; bpmDisplay.className = 'bpm-number';
-  syncBeatCount(''); 
-  dots.forEach(d => d.classList.remove('lit'));
+  bpmDisplay.textContent='—'; bpmDisplay.className='bpm-number dim';
+  syncCount(0); dots.forEach(d=>d.classList.remove('lit'));
   clearTimeout(resetTimer);
-  pauseBtn.disabled = true; pauseBtn.textContent = '▶';
-  pauseBtn.classList.remove('playing','paused');
-  saveBtn.disabled = true;
-  currentSongIndex = -1; updateSongStrip();
+  pauseBtn.disabled=true; setPauseIcon('');
+  saveBtn.disabled=true;
+  currentSongIndex=-1; updateSongStrip();
 }
 
 // ════════════════════════════════════════════
 //  SONG NAV
 // ════════════════════════════════════════════
 function updateSongStrip() {
-  currentSongName.textContent = currentSongIndex >= 0 && songs[currentSongIndex] ? songs[currentSongIndex].name : '';
-  const atStart = currentSongIndex <= 0;
-  const atEnd   = currentSongIndex < 0 || currentSongIndex >= songs.length-1;
-  prevSong.disabled = atStart;  nextSong.disabled = atEnd;
-  prevSongL.disabled = atStart; nextSongL.disabled = atEnd;
+  songName.textContent = currentSongIndex>=0 && songs[currentSongIndex] ? songs[currentSongIndex].name : '';
+  const atStart = currentSongIndex<=0, atEnd = currentSongIndex<0||currentSongIndex>=songs.length-1;
+  prevSong.disabled=atStart; nextSong.disabled=atEnd;
+  prevSongL.disabled=atStart; nextSongL.disabled=atEnd;
 }
-
 function loadSong(idx) {
-  if (idx < 0 || idx >= songs.length) return;
-  currentSongIndex = idx;
-  const s = songs[idx];
-  taps = []; beatCount.textContent = '— slag';
-  setBPM(s.bpm, true);
-  
-  
+  if (idx<0||idx>=songs.length) return;
+  currentSongIndex=idx; const s=songs[idx];
+  taps=[]; syncCount(0); setBPM(s.bpm, true);
   updateSongStrip(); renderSongList();
 }
-
-prevSong.addEventListener('click',  () => { if(currentSongIndex>0) loadSong(currentSongIndex-1); });
-nextSong.addEventListener('click',  () => { if(currentSongIndex<songs.length-1) loadSong(currentSongIndex+1); });
-prevSongL.addEventListener('click', () => { if(currentSongIndex>0) loadSong(currentSongIndex-1); });
-nextSongL.addEventListener('click', () => { if(currentSongIndex<songs.length-1) loadSong(currentSongIndex+1); });
+prevSong.addEventListener('click',  ()=>{ if(currentSongIndex>0) loadSong(currentSongIndex-1); });
+nextSong.addEventListener('click',  ()=>{ if(currentSongIndex<songs.length-1) loadSong(currentSongIndex+1); });
+prevSongL.addEventListener('click', ()=>{ if(currentSongIndex>0) loadSong(currentSongIndex-1); });
+nextSongL.addEventListener('click', ()=>{ if(currentSongIndex<songs.length-1) loadSong(currentSongIndex+1); });
 
 // ════════════════════════════════════════════
 //  SIDEBAR
 // ════════════════════════════════════════════
-function openSidebar()  { sidebar.classList.add('open'); overlay.classList.add('open'); mainContainer.classList.add('shifted'); listBtn.classList.add('open'); renderSongList(); }
-function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('open'); mainContainer.classList.remove('shifted'); listBtn.classList.remove('open'); }
-listBtn.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+function openSidebar()  { sidebar.classList.add('open'); overlay.classList.add('open'); app.classList.add('shifted'); renderSongList(); }
+function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('open'); app.classList.remove('shifted'); }
+listBtn.addEventListener('click', ()=>sidebar.classList.contains('open')?closeSidebar():openSidebar());
 sidebarClose.addEventListener('click', closeSidebar);
 overlay.addEventListener('click', closeSidebar);
 
 // ════════════════════════════════════════════
-//  RENDER SONG LIST
+//  SONG LIST
 // ════════════════════════════════════════════
 function renderSongList() {
-  songListEl.innerHTML = '';
+  songListEl.innerHTML='';
   sidebarEmpty.style.display = songs.length ? 'none' : 'block';
-  songs.forEach((s, i) => {
+  songs.forEach((s,i) => {
     const item = document.createElement('div');
     item.className = 'song-item' + (i===currentSongIndex?' active-song':'');
     item.dataset.index = i;
@@ -732,58 +759,53 @@ function renderSongList() {
       <div class="drag-handle" data-handle>⠿</div>
       <div class="song-item-info">
         <div class="song-item-name">${s.name}</div>
-        <div class="song-item-bpm">${s.bpm} BPM</div>
+        <div class="song-item-bpm">${s.bpm}</div>
       </div>
-      <button class="song-item-del" data-del="${i}">✕</button>`;
-    item.addEventListener('click', e => {
-      if (e.target.dataset.del !== undefined || e.target.dataset.handle !== undefined) return;
-      loadSong(i); closeSidebar();
-    });
-    item.querySelector('[data-del]').addEventListener('click', e => {
-      e.stopPropagation();
-      songs.splice(i,1);
-      if (currentSongIndex===i) currentSongIndex=-1;
-      else if (currentSongIndex>i) currentSongIndex--;
+      <button class="song-item-del" data-del="${i}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>`;
+    item.addEventListener('click', e=>{ if(e.target.closest('[data-del]')||e.target.dataset.handle!==undefined) return; loadSong(i); closeSidebar(); });
+    item.querySelector('[data-del]').addEventListener('click', e=>{
+      e.stopPropagation(); songs.splice(i,1);
+      if(currentSongIndex===i) currentSongIndex=-1; else if(currentSongIndex>i) currentSongIndex--;
       saveSongs(); renderSongList(); updateSongStrip();
     });
     songListEl.appendChild(item);
   });
-  initDragAndDrop();
+  initDnD();
 }
 
 // ════════════════════════════════════════════
 //  DRAG & DROP
 // ════════════════════════════════════════════
-function initDragAndDrop() {
+function initDnD() {
   const items = songListEl.querySelectorAll('.song-item');
-  let dragSrc = null, dragSrcIdx = null;
-  items.forEach(item => {
-    const handle = item.querySelector('[data-handle]');
-    handle.addEventListener('touchstart', e => { e.stopPropagation(); dragSrc=item; dragSrcIdx=parseInt(item.dataset.index); item.classList.add('dragging'); }, {passive:true});
-    handle.addEventListener('touchmove', e => {
+  let src=null, srcIdx=null;
+  items.forEach(item=>{
+    const h = item.querySelector('[data-handle]');
+    h.addEventListener('touchstart', e=>{ e.stopPropagation(); src=item; srcIdx=parseInt(item.dataset.index); item.classList.add('dragging'); }, {passive:true});
+    h.addEventListener('touchmove', e=>{
       e.preventDefault();
-      const t = e.touches[0];
-      const els = document.elementsFromPoint(t.clientX,t.clientY);
-      const over = els.find(el=>el.classList&&el.classList.contains('song-item')&&el!==dragSrc);
+      const t=e.touches[0], els=document.elementsFromPoint(t.clientX,t.clientY);
+      const over=els.find(el=>el.classList?.contains('song-item')&&el!==src);
       items.forEach(it=>it.classList.remove('drag-over')); if(over) over.classList.add('drag-over');
     }, {passive:false});
-    handle.addEventListener('touchend', () => {
-      const overEl = songListEl.querySelector('.drag-over');
-      if (overEl&&dragSrc) reorderSongs(dragSrcIdx,parseInt(overEl.dataset.index));
-      items.forEach(it=>it.classList.remove('dragging','drag-over')); dragSrc=null; dragSrcIdx=null;
+    h.addEventListener('touchend', ()=>{
+      const over=songListEl.querySelector('.drag-over');
+      if(over&&src) reorder(srcIdx,parseInt(over.dataset.index));
+      items.forEach(it=>it.classList.remove('dragging','drag-over')); src=null; srcIdx=null;
     }, {passive:true});
-    handle.addEventListener('mousedown', e => {
-      e.stopPropagation(); dragSrc=item; dragSrcIdx=parseInt(item.dataset.index); item.classList.add('dragging');
-      function mv(ev){ const els=document.elementsFromPoint(ev.clientX,ev.clientY); const over=els.find(el=>el.classList&&el.classList.contains('song-item')&&el!==dragSrc); items.forEach(it=>it.classList.remove('drag-over')); if(over) over.classList.add('drag-over'); }
-      function up(){ const overEl=songListEl.querySelector('.drag-over'); if(overEl&&dragSrc) reorderSongs(dragSrcIdx,parseInt(overEl.dataset.index)); items.forEach(it=>it.classList.remove('dragging','drag-over')); dragSrc=null; dragSrcIdx=null; window.removeEventListener('mousemove',mv); window.removeEventListener('mouseup',up); }
+    h.addEventListener('mousedown', e=>{
+      e.stopPropagation(); src=item; srcIdx=parseInt(item.dataset.index); item.classList.add('dragging');
+      const mv=ev=>{ const els=document.elementsFromPoint(ev.clientX,ev.clientY); const over=els.find(el=>el.classList?.contains('song-item')&&el!==src); items.forEach(it=>it.classList.remove('drag-over')); if(over) over.classList.add('drag-over'); };
+      const up=()=>{ const over=songListEl.querySelector('.drag-over'); if(over&&src) reorder(srcIdx,parseInt(over.dataset.index)); items.forEach(it=>it.classList.remove('dragging','drag-over')); src=null; srcIdx=null; window.removeEventListener('mousemove',mv); window.removeEventListener('mouseup',up); };
       window.addEventListener('mousemove',mv); window.addEventListener('mouseup',up);
     });
   });
 }
-
-function reorderSongs(from, to) {
-  if (from===to) return;
-  const moved = songs.splice(from,1)[0]; songs.splice(to,0,moved);
+function reorder(from,to) {
+  if(from===to) return;
+  const m=songs.splice(from,1)[0]; songs.splice(to,0,m);
   if(currentSongIndex===from) currentSongIndex=to;
   else if(from<to&&currentSongIndex>from&&currentSongIndex<=to) currentSongIndex--;
   else if(from>to&&currentSongIndex>=to&&currentSongIndex<from) currentSongIndex++;
@@ -791,130 +813,96 @@ function reorderSongs(from, to) {
 }
 
 // ════════════════════════════════════════════
-//  SAVE MODAL
+//  SAVE
 // ════════════════════════════════════════════
-function openSaveModal() {
-  if (!currentBPM) return;
-  modalBpmText.textContent = `BPM: ${currentBPM}`;
-  modalInput.value = '';
-  modalBackdrop.classList.add('open');
-  setTimeout(() => modalInput.focus(), 100);
-}
-function closeSaveModal() { modalBackdrop.classList.remove('open'); }
-function confirmSave() {
+saveBtn.addEventListener('click', ()=>{ if(!currentBPM) return; modalInput.value=''; saveModalBg.classList.add('open'); setTimeout(()=>modalInput.focus(),100); });
+modalCancel.addEventListener('click', ()=>saveModalBg.classList.remove('open'));
+modalConfirm.addEventListener('click', ()=>{
   const name = modalInput.value.trim() || `Låt ${songs.length+1}`;
-  songs.push({name, bpm: currentBPM}); currentSongIndex = songs.length-1;
-  saveSongs(); closeSaveModal(); renderSongList(); updateSongStrip();
-  
-  
-}
-saveBtn.addEventListener('click', openSaveModal);
-modalCancel.addEventListener('click', closeSaveModal);
-modalConfirm.addEventListener('click', confirmSave);
-modalInput.addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();confirmSave();} if(e.key==='Escape') closeSaveModal(); });
-modalBackdrop.addEventListener('click', e => { if(e.target===modalBackdrop) closeSaveModal(); });
-
-// ════════════════════════════════════════════
-//  MANUAL BPM EDIT
-// ════════════════════════════════════════════
-function openInput() {
-  if (!currentBPM) setBPM(120, true);
-  bpmDisplay.style.display = 'none'; bpmInput.style.display = 'inline-block';
-  bpmInput.value = currentBPM;
-  setTimeout(() => { bpmInput.focus(); bpmInput.select(); }, 50);
-}
-function closeInput() {
-  const v = parseInt(bpmInput.value, 10);
-  if (!isNaN(v)&&v>=40&&v<=250) setBPM(v, true);
-  bpmInput.style.display = 'none'; bpmDisplay.style.display = '';
-}
-let tapOnBpm = false;
-bpmDisplay.addEventListener('touchstart', () => { tapOnBpm=true; }, {passive:true});
-bpmDisplay.addEventListener('touchend', e => { if(tapOnBpm){e.preventDefault();openInput();} tapOnBpm=false; });
-bpmDisplay.addEventListener('click', openInput);
-bpmInput.addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();closeInput();} if(e.key==='Escape'){bpmInput.style.display='none';bpmDisplay.style.display='';} });
-bpmInput.addEventListener('blur', closeInput);
-
-arrowUp.addEventListener('click',   e => { e.stopPropagation(); adjustBPM(1);  });
-arrowDown.addEventListener('click', e => { e.stopPropagation(); adjustBPM(-1); });
-function makeRepeat(btn, delta) {
-  let t,iv;
-  btn.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); adjustBPM(delta); t=setTimeout(()=>{iv=setInterval(()=>adjustBPM(delta),80);},400); }, {passive:false});
-  btn.addEventListener('touchend', () => { clearTimeout(t); clearInterval(iv); });
-}
-makeRepeat(arrowUp,1); makeRepeat(arrowDown,-1);
-
-// ════════════════════════════════════════════
-//  BUTTON EVENTS
-// ════════════════════════════════════════════
-
-// Use pointerdown — works reliably on both iOS and Android
-// without the double-fire problem of touchstart+click
-let lastTapTime = 0;
-const MIN_TAP_INTERVAL = 60000 / 250; // ~240ms = max 250 BPM
-
-function onTapGuarded(e) {
-  e.preventDefault();
-  const now = Date.now();
-  if (now - lastTapTime < MIN_TAP_INTERVAL) return;
-  lastTapTime = now;
-  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-  onTap(e);
-}
-
-tapBtn.addEventListener('pointerdown',  onTapGuarded);
-tapBtnL.addEventListener('pointerdown', onTapGuarded);
+  songs.push({name, bpm:currentBPM}); currentSongIndex=songs.length-1;
+  saveSongs(); saveModalBg.classList.remove('open'); renderSongList(); updateSongStrip();
+});
+modalInput.addEventListener('keydown', e=>{ if(e.key==='Enter'){e.preventDefault();modalConfirm.click();} if(e.key==='Escape') saveModalBg.classList.remove('open'); });
+saveModalBg.addEventListener('click', e=>{ if(e.target===saveModalBg) saveModalBg.classList.remove('open'); });
 
 // ════════════════════════════════════════════
 //  SOUND PICKER
 // ════════════════════════════════════════════
-const soundPickBtn       = document.getElementById('soundPickBtn');
-const soundModalBackdrop = document.getElementById('soundModalBackdrop');
-const soundGrid          = document.getElementById('soundGrid');
-
 function renderSoundGrid() {
-  soundGrid.innerHTML = '';
-  Object.entries(SAMPLE_META).forEach(([key, meta]) => {
-    const btn = document.createElement('button');
-    btn.className = 'sound-option' + (key === currentSound ? ' selected' : '');
-    btn.innerHTML = `<span class="sound-icon">${meta.icon}</span>${meta.label}`;
-    btn.addEventListener('click', () => {
-      currentSound = key;
-      localStorage.setItem('bpm_sound', key);
-      loadSample(key).then(() => playSound(0.8));
-      renderSoundGrid();
+  soundGrid.innerHTML='';
+  Object.entries(SAMPLE_META).forEach(([key,meta])=>{
+    const btn=document.createElement('button');
+    btn.className='sound-opt'+(key===currentSound?' selected':'');
+    btn.innerHTML=`<span class="ico">${meta.icon}</span>${meta.label}`;
+    btn.addEventListener('click',()=>{
+      currentSound=key; localStorage.setItem('bpm_sound',key);
+      loadSample(key).then(()=>playSound(0.8)); renderSoundGrid();
     });
     soundGrid.appendChild(btn);
   });
 }
-function openSoundModal()  { renderSoundGrid(); soundModalBackdrop.classList.add('open'); }
-function closeSoundModal() { soundModalBackdrop.classList.remove('open'); }
-soundPickBtn.addEventListener('click', openSoundModal);
-soundModalBackdrop.addEventListener('click', e => { if(e.target===soundModalBackdrop) closeSoundModal(); });
+soundPickBtn.addEventListener('click',()=>{ renderSoundGrid(); soundModalBg.classList.add('open'); });
+soundModalBg.addEventListener('click', e=>{ if(e.target===soundModalBg) soundModalBg.classList.remove('open'); });
+
+// ════════════════════════════════════════════
+//  MANUAL BPM
+// ════════════════════════════════════════════
+function openBpmInput() {
+  if(!currentBPM) setBPM(120,true);
+  bpmDisplay.style.display='none'; bpmInput.style.display='inline-block';
+  bpmInput.value=currentBPM; setTimeout(()=>{bpmInput.focus();bpmInput.select();},50);
+}
+function closeBpmInput() {
+  const v=parseInt(bpmInput.value,10);
+  if(!isNaN(v)&&v>=40&&v<=250) setBPM(v,true);
+  bpmInput.style.display='none'; bpmDisplay.style.display='';
+}
+let tapOnNum=false;
+bpmDisplay.addEventListener('touchstart',()=>tapOnNum=true,{passive:true});
+bpmDisplay.addEventListener('touchend',e=>{if(tapOnNum){e.preventDefault();openBpmInput();}tapOnNum=false;});
+bpmDisplay.addEventListener('click', openBpmInput);
+bpmInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();closeBpmInput();}if(e.key==='Escape'){bpmInput.style.display='none';bpmDisplay.style.display='';}});
+bpmInput.addEventListener('blur', closeBpmInput);
+
+arrowUp.addEventListener('click',   e=>{e.stopPropagation();adjustBPM(1);});
+arrowDown.addEventListener('click', e=>{e.stopPropagation();adjustBPM(-1);});
+function makeRepeat(btn,d){
+  let t,iv;
+  btn.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();adjustBPM(d);t=setTimeout(()=>{iv=setInterval(()=>adjustBPM(d),80);},400);},{passive:false});
+  btn.addEventListener('touchend',()=>{clearTimeout(t);clearInterval(iv);});
+}
+makeRepeat(arrowUp,1); makeRepeat(arrowDown,-1);
+
+// ════════════════════════════════════════════
+//  BUTTONS
+// ════════════════════════════════════════════
+tapBtn.addEventListener('pointerdown',  onTapGuarded);
+tapBtnL.addEventListener('pointerdown', onTapGuarded);
 
 resetBtn.addEventListener('click', reset);
 
-pauseBtn.addEventListener('click', () => {
-  if (metroInterval) {
-    clearInterval(metroInterval); metroInterval=null;
-    pauseBtn.textContent='▶'; pauseBtn.classList.remove('playing'); pauseBtn.classList.add('paused');
-  } else if (currentBPM) { startMetronome(currentBPM); }
+pauseBtn.addEventListener('click',()=>{
+  if(metroInterval){
+    clearInterval(metroInterval); metroInterval=null; setPauseIcon('play');
+  } else if(currentBPM) { startMetronome(currentBPM); }
 });
 
-soundBtn.addEventListener('click', () => {
-  soundEnabled = !soundEnabled;
-  soundBtn.textContent = soundEnabled ? '🔊' : '🔇';
-  soundBtn.classList.toggle('muted', !soundEnabled);
+soundBtn.addEventListener('click',()=>{
+  soundEnabled=!soundEnabled;
+  soundBtn.classList.toggle('muted',!soundEnabled);
+  soundIcon.innerHTML = soundEnabled
+    ? '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>'
+    : '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>';
 });
 
-document.addEventListener('keydown', e => {
+document.addEventListener('keydown',e=>{
   if(document.activeElement===bpmInput||document.activeElement===modalInput) return;
-  if(e.code==='Space')     { e.preventDefault(); onTap(e); }
-  if(e.code==='Escape')    reset();
-  if(e.code==='ArrowUp')   { e.preventDefault(); adjustBPM(1); }
-  if(e.code==='ArrowDown') { e.preventDefault(); adjustBPM(-1); }
-  if(e.code==='ArrowLeft'  && currentSongIndex>0) loadSong(currentSongIndex-1);
-  if(e.code==='ArrowRight' && currentSongIndex<songs.length-1) loadSong(currentSongIndex+1);
+  if(e.code==='Space'){e.preventDefault();onTap();}
+  if(e.code==='Escape') reset();
+  if(e.code==='ArrowUp'){e.preventDefault();adjustBPM(1);}
+  if(e.code==='ArrowDown'){e.preventDefault();adjustBPM(-1);}
+  if(e.code==='ArrowLeft'&&currentSongIndex>0) loadSong(currentSongIndex-1);
+  if(e.code==='ArrowRight'&&currentSongIndex<songs.length-1) loadSong(currentSongIndex+1);
 });
 
 updateSongStrip();
